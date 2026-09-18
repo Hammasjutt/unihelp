@@ -180,6 +180,56 @@ def verify_caller(authorization: str):
     return access_token, SimpleNamespace(id=user_id)
 
 
+def get_profile_by_user_id(user_id: str) -> dict:
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/profiles",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={
+                "select": "id,organization_id,role,department",
+                "id": f"eq.{user_id}",
+            },
+            timeout=15,
+        )
+    except requests.RequestException as exc:
+        logger.error("Profile request failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Could not connect to database",
+        )
+
+    if response.status_code != 200:
+        logger.error(
+            "Profile request rejected: %s %s",
+            response.status_code,
+            response.text,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Could not retrieve user profile",
+        )
+
+    try:
+        profiles = response.json()
+    except ValueError:
+        logger.error("Invalid profile response: %r", response.text)
+        raise HTTPException(
+            status_code=502,
+            detail="Database returned an invalid profile response",
+        )
+
+    if not profiles:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No profile found for user {user_id}",
+        )
+
+    return profiles[0]
+
+
 def normalize_profile(data):
     if isinstance(data, dict):
         return data
@@ -380,27 +430,7 @@ def health_check():
 def list_tickets(authorization: Optional[str] = Header(None)):
     _access_token, user = verify_caller(authorization)
     service_client = get_service_role_client()
-    profile_response = (
-        service_client.table("profiles")
-        .select("organization_id, role, department")
-        .eq("id", user.id)
-        .single()
-        .execute()
-    )
-
-    profile = profile_response.data
-
-    if isinstance(profile, str):
-        try:
-            profile = json.loads(profile)
-        except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=500,
-                detail="Invalid profile data returned from database",
-            )
-
-    if not isinstance(profile, dict):
-        raise HTTPException(status_code=404, detail="User profile not found")
+    profile = get_profile_by_user_id(user.id)
 
     organization_id = profile.get("organization_id")
 
@@ -590,21 +620,7 @@ async def invite_staff(payload: StaffInvitePayload, authorization: Optional[str]
     access_token, user = verify_caller(authorization)
     caller_client = get_user_scoped_client(access_token)
 
-    caller_profile_response = (
-        caller_client.table("profiles")
-        .select("organization_id, role")
-        .eq("id", user.id)
-        .single()
-        .execute()
-    )
-
-    caller_profile = normalize_profile(caller_profile_response.data)
-
-    if not caller_profile:
-        raise HTTPException(
-            status_code=404,
-            detail="Admin profile was not found",
-        )
+    caller_profile = get_profile_by_user_id(user.id)
 
     if caller_profile.get("role") != "admin":
         raise HTTPException(
