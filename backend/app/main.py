@@ -358,30 +358,49 @@ def health_check():
 def list_tickets(authorization: Optional[str] = Header(None)):
     _access_token, user = verify_caller(authorization)
     service_client = get_service_role_client()
-    profile = (
+    profile_response = (
         service_client.table("profiles")
         .select("organization_id, role, department")
         .eq("id", user.id)
         .single()
         .execute()
-        .data
     )
-    if not profile:
-        raise HTTPException(status_code=403, detail="No profile found for this account")
+
+    profile = profile_response.data
+
+    if isinstance(profile, str):
+        try:
+            profile = json.loads(profile)
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid profile data returned from database",
+            )
+
+    if not isinstance(profile, dict):
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    organization_id = profile.get("organization_id")
+
+    if not organization_id:
+        raise HTTPException(
+            status_code=400,
+            detail="User profile has no organization",
+        )
 
     tickets = (
         service_client.table("tickets")
         .select("*, assigned:profiles!assigned_staff_id(id,name)")
-        .eq("organization_id", profile["organization_id"])
+        .eq("organization_id", organization_id)
         .order("created_at", desc=True)
         .execute()
         .data
         or []
     )
 
-    if profile["role"] == "student":
+    if profile.get("role") == "student":
         return [ticket for ticket in tickets if ticket.get("submitted_by") == user.id]
-    elif profile["role"] == "staff":
+    elif profile.get("role") == "staff":
         department = profile.get("department") or ""
         return [
             ticket
