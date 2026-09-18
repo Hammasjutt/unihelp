@@ -5,6 +5,7 @@ import string
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Optional
 
 import httpx
@@ -15,7 +16,7 @@ from pydantic import BaseModel
 from supabase import Client, create_client
 
 try:
-    from ml.predict import LocalTicketClassifier, ModelPredictionError, ModelUnavailableError
+    from backend.ml.predict import LocalTicketClassifier, ModelPredictionError, ModelUnavailableError
 except ModuleNotFoundError:
     from backend.ml.predict import LocalTicketClassifier, ModelPredictionError, ModelUnavailableError
 
@@ -114,17 +115,46 @@ def get_service_role_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 
-def verify_caller(authorization: str) -> Any:
-    """Validates the bearer token against Supabase Auth and returns the user."""
+def verify_caller(authorization: str):
     access_token = extract_bearer_token(authorization)
-    anon_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
     try:
-        user_response = anon_client.auth.get_user(access_token)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    if not user_response or not user_response.user:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    return access_token, user_response.user
+        response = requests.get(
+            f"{SUPABASE_URL}/auth/v1/user",
+            headers={
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": f"Bearer {access_token}",
+            },
+            timeout=15,
+        )
+    except requests.RequestException as exc:
+        logger.error("Supabase authentication request failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Authentication service is unavailable",
+        )
+
+    if response.status_code != 200:
+        logger.warning(
+            "Supabase rejected session: status=%s response=%s",
+            response.status_code,
+            response.text,
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired session",
+        )
+
+    user_data = response.json()
+    user_id = user_data.get("id")
+
+    if not user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid user session",
+        )
+
+    return access_token, SimpleNamespace(id=user_id)
 
 
 def derive_title(description: str, limit: int = 60) -> str:
