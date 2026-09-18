@@ -132,6 +132,8 @@ def verify_caller(authorization: str):
             headers={
                 "apikey": SUPABASE_ANON_KEY,
                 "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json",
+                "Accept-Encoding": "identity",
             },
             timeout=15,
         )
@@ -187,6 +189,8 @@ def get_profile_by_user_id(user_id: str) -> dict:
             headers={
                 "apikey": SUPABASE_SERVICE_ROLE_KEY,
                 "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Accept": "application/json",
+                "Accept-Encoding": "identity",
             },
             params={
                 "select": "id,organization_id,role,department",
