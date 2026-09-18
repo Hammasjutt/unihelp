@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 import logging
 import secrets
@@ -153,8 +155,23 @@ def verify_caller(authorization: str):
             detail="Invalid or expired session",
         )
 
-    user_data = response.json()
-    user_id = user_data.get("id")
+    try:
+        user_data = response.json()
+        user_id = user_data.get("id") or user_data.get("sub")
+    except (ValueError, json.JSONDecodeError):
+        try:
+            payload = access_token.split(".")[1]
+            payload += "=" * (-len(payload) % 4)
+            token_data = json.loads(
+                base64.urlsafe_b64decode(payload).decode("utf-8")
+            )
+            user_id = token_data.get("sub")
+        except Exception as exc:
+            logger.error("Could not decode validated user token: %s", exc)
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid user session",
+            )
 
     if not user_id:
         raise HTTPException(
