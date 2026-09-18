@@ -1,0 +1,8 @@
+#!/bin/sh
+'''exec' "/Users/faheemhayat/Desktop/Unihelp Project Own model used /backend/.venv_ml/bin/python" "$0" "$@"
+' '''
+import sys
+from watchfiles.cli import cli
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(cli())

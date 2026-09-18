@@ -1,0 +1,225 @@
+{
+  "model_version": 2,
+  "trained_at": "2026-09-04T10:35:05.634162+00:00",
+  "source": "/Users/faheemhayat/Desktop/Unihelp Project Own model used /backend/ml/data/unihelp_12000_fixed.csv",
+  "organization_id": null,
+  "training_rows": 12000,
+  "features": [
+    "title",
+    "description",
+    "category"
+  ],
+  "algorithm": "TF-IDF (1-2 grams) + Logistic Regression",
+  "department_distribution": {
+    "Academic Office": 2000,
+    "Facilities": 2000,
+    "Hostel Management": 2000,
+    "IT Support": 2000,
+    "Student Finance": 2000,
+    "Student Services": 2000
+  },
+  "priority_distribution": {
+    "High": 3600,
+    "Low": 3600,
+    "Medium": 4800
+  },
+  "language_distribution": {
+    "en": 6000,
+    "roman": 3600,
+    "ur": 2400
+  },
+  "scenario_count": 60,
+  "warnings": [],
+  "metrics": {
+    "department": {
+      "accuracy": 0.7592,
+      "macro_f1": 0.7422,
+      "test_samples": 2400,
+      "train_samples": 9600,
+      "split_strategy": "scenario_holdout",
+      "labels": [
+        "Academic Office",
+        "Facilities",
+        "Hostel Management",
+        "IT Support",
+        "Student Finance",
+        "Student Services"
+      ],
+      "confusion_matrix": [
+        [
+          400,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          400,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          400,
+          0,
+          0,
+          0
+        ],
+        [
+          103,
+          1,
+          0,
+          283,
+          0,
+          13
+        ],
+        [
+          66,
+          1,
+          138,
+          16,
+          125,
+          54
+        ],
+        [
+          177,
+          5,
+          4,
+          0,
+          0,
+          214
+        ]
+      ],
+      "classification_report": {
+        "Academic Office": {
+          "precision": 0.5361930294906166,
+          "recall": 1.0,
+          "f1-score": 0.6980802792321117,
+          "support": 400.0
+        },
+        "Facilities": {
+          "precision": 0.9828009828009828,
+          "recall": 1.0,
+          "f1-score": 0.9913258983890955,
+          "support": 400.0
+        },
+        "Hostel Management": {
+          "precision": 0.7380073800738007,
+          "recall": 1.0,
+          "f1-score": 0.8492569002123143,
+          "support": 400.0
+        },
+        "IT Support": {
+          "precision": 0.9464882943143813,
+          "recall": 0.7075,
+          "f1-score": 0.8097281831187411,
+          "support": 400.0
+        },
+        "Student Finance": {
+          "precision": 1.0,
+          "recall": 0.3125,
+          "f1-score": 0.47619047619047616,
+          "support": 400.0
+        },
+        "Student Services": {
+          "precision": 0.7615658362989324,
+          "recall": 0.535,
+          "f1-score": 0.6284875183553598,
+          "support": 400.0
+        },
+        "accuracy": 0.7591666666666667,
+        "macro avg": {
+          "precision": 0.8275092538297857,
+          "recall": 0.7591666666666667,
+          "f1-score": 0.742178209249683,
+          "support": 2400.0
+        },
+        "weighted avg": {
+          "precision": 0.8275092538297856,
+          "recall": 0.7591666666666667,
+          "f1-score": 0.7421782092496831,
+          "support": 2400.0
+        }
+      },
+      "random_holdout": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "test_samples": 2400,
+        "split_strategy": "stratified_random_80_20"
+      }
+    },
+    "priority": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "test_samples": 2400,
+      "train_samples": 9600,
+      "split_strategy": "scenario_holdout",
+      "labels": [
+        "High",
+        "Low",
+        "Medium"
+      ],
+      "confusion_matrix": [
+        [
+          728,
+          0,
+          0
+        ],
+        [
+          0,
+          726,
+          0
+        ],
+        [
+          0,
+          0,
+          946
+        ]
+      ],
+      "classification_report": {
+        "High": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 728.0
+        },
+        "Low": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 726.0
+        },
+        "Medium": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 946.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 2400.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 2400.0
+        }
+      },
+      "random_holdout": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "test_samples": 2400,
+        "split_strategy": "stratified_random_80_20"
+      }
+    }
+  }
+}

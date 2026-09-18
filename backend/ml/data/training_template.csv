@@ -1,0 +1,12 @@
+title,description,category,department,priority
+WiFi disconnecting,Campus internet disconnect ho raha hai,General,IT Support,High
+Portal password issue,Student portal password reset nahi ho raha,General,IT Support,Medium
+Broken classroom fan,Classroom ka fan broken hai,Facilities,Facilities,High
+Washroom water issue,Second floor washroom mein water nahi aa raha,Facilities,Facilities,High
+Exam date query,Please confirm the midterm exam schedule,Academic,Academic Office,Low
+Transcript correction,My transcript has the wrong course grade,Academic,Academic Office,Medium
+Fee voucher missing,Semester fee voucher generate nahi ho raha,Finance,Student Finance,Medium
+Payment not updated,I paid the fee but portal still shows unpaid,Finance,Student Finance,High
+Student card query,When will my student card be ready,General,Student Services,Low
+Admission document help,I need help submitting my admission documents,General,Student Services,Medium
+
