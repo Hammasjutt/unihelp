@@ -11,3 +11,8 @@ __pycache__/
 backend/app/uploads/
 backend/app/__pycache__/
 .DS_Store
+
+
+node_modules/
+node_modules_from_zip/
+dist/
