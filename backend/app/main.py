@@ -113,11 +113,9 @@ def extract_bearer_token(authorization: Optional[str]) -> str:
 
 
 def get_user_scoped_client(access_token: str) -> Client:
-    """A Supabase client whose Postgrest/Storage requests carry the caller's own
-    JWT, so RLS evaluates auth.uid() as that specific user -- never the
-    service-role key for anything reachable from the browser's request path."""
+    """Create a Supabase client using the logged-in user's JWT."""
     client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
-    client.options.headers["Authorization"] = f"Bearer {access_token}"
+    client.postgrest.auth(access_token)
     return client
 
 
