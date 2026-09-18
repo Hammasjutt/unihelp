@@ -15,10 +15,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import Client, create_client
 
-try:
-    from backend.ml.predict import LocalTicketClassifier, ModelPredictionError, ModelUnavailableError
-except ModuleNotFoundError:
-    from backend.ml.predict import LocalTicketClassifier, ModelPredictionError, ModelUnavailableError
+import sys
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from ml.predict import (
+    LocalTicketClassifier,
+    ModelPredictionError,
+    ModelUnavailableError,
+)
 
 app = FastAPI(title="UniHelp API")
 logger = logging.getLogger(__name__)
