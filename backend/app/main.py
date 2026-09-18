@@ -182,6 +182,30 @@ def verify_caller(authorization: str):
     return access_token, SimpleNamespace(id=user_id)
 
 
+def normalize_profile(data):
+    if isinstance(data, dict):
+        return data
+
+    if isinstance(data, list):
+        if data and isinstance(data[0], dict):
+            return data[0]
+        return None
+
+    if isinstance(data, str):
+        try:
+            decoded = json.loads(data)
+
+            if isinstance(decoded, dict):
+                return decoded
+
+            if isinstance(decoded, list) and decoded:
+                return decoded[0]
+        except json.JSONDecodeError:
+            return None
+
+    return None
+
+
 def derive_title(description: str, limit: int = 60) -> str:
     text = " ".join(description.split())
     if not text:
@@ -568,11 +592,27 @@ async def invite_staff(payload: StaffInvitePayload, authorization: Optional[str]
     access_token, user = verify_caller(authorization)
     caller_client = get_user_scoped_client(access_token)
 
-    caller_profile = (
-        caller_client.table("profiles").select("organization_id, role").eq("id", user.id).single().execute().data
+    caller_profile_response = (
+        caller_client.table("profiles")
+        .select("organization_id, role")
+        .eq("id", user.id)
+        .single()
+        .execute()
     )
-    if not caller_profile or caller_profile.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create staff or student accounts")
+
+    caller_profile = normalize_profile(caller_profile_response.data)
+
+    if not caller_profile:
+        raise HTTPException(
+            status_code=404,
+            detail="Admin profile was not found",
+        )
+
+    if caller_profile.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Only admins can create staff or student accounts",
+        )
 
     organization_id = caller_profile["organization_id"]
     invite_email = payload.email.strip().lower()
