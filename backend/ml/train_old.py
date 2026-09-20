@@ -29,7 +29,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 try:
     from .predict import build_ticket_text
 except ImportError:
-    from predict import build_ticket_text
+    from backend.ml.predict import build_ticket_text
 
 
 REQUIRED_COLUMNS = {"title", "description", "category", "department", "priority"}

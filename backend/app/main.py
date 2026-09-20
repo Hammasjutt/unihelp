@@ -67,13 +67,8 @@ if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_SERVICE_ROLE_KEY:
         "org-scoped RLS is the only source of truth."
     )
 
-DEFAULT_N8N_WEBHOOK_URL = "http://localhost:5678/webhook/a667897b-2cca-4247-83d4-6ff8bf8b8f81"
-N8N_WEBHOOK_URL = (
-    os.getenv("N8N_WEBHOOK_URL")
-    or os.getenv("N8N_WEBHOOK")
-    or os.getenv("WEBHOOK_URL")
-    or DEFAULT_N8N_WEBHOOK_URL
-)
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
+N8N_EMAIL_WEBHOOK_URL = os.getenv("N8N_EMAIL_WEBHOOK_URL")
 LOCAL_CLASSIFIER = LocalTicketClassifier()
 
 FRONTEND_ORIGINS = [
@@ -570,10 +565,7 @@ async def create_ticket(
         )
 
     # Ticket creation fail na ho agar n8n/email temporarily unavailable ho
-    email_webhook_url = os.getenv(
-        "N8N_EMAIL_WEBHOOK_URL",
-        "",
-    ).strip()
+    email_webhook_url = (N8N_EMAIL_WEBHOOK_URL or "").strip()
 
     if email_webhook_url:
         notification_payload = {
