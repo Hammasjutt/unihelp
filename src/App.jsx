@@ -1,6 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
+import LandingPage from './components/LandingPage';
+import DashboardShell from './components/DashboardShell';
+import DashboardPanels from './components/DashboardPanels';
+import { PasswordSetupScreen, StudentProfileSetupScreen } from './components/AuthScreens';
+
+// ============================================================
+// COMPONENT FILE GUIDE
+// Landing page + login modal:  components/LandingPage.jsx
+// Password/profile setup:       components/AuthScreens.jsx
+// Dashboard layout/navigation:  components/DashboardShell.jsx
+// All dashboard panels:         components/DashboardPanels.jsx
+// App state/API handlers:       this file (App.jsx)
+// Search "COMPONENT:" in any file to jump to a UI section.
+// ============================================================
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -122,33 +135,6 @@ const capabilities = [
   { icon: NavIcon.sync, label: 'Real-time updates' },
   { icon: NavIcon.shield, label: 'Evidence uploads (Coming Soon)' }
 ];
-function HamburgerIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M4 7h16M4 12h16M4 17h16" />
-    </svg>
-  );
-}
-
-function CountUp({ value }) {
-  const numericValue = Number(value) || 0;
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    let frame;
-    const start = performance.now();
-    const duration = 650;
-    const tick = (now) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(numericValue * eased));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [numericValue]);
-  return display;
-}
-
 const NAV_BY_ROLE = {
   admin: [
     { id: 'overview', label: 'Overview', icon: NavIcon.grid },
@@ -213,6 +199,11 @@ function getPanelTitle(panel, role) {
   return '';
 }
 
+// ============================================================
+// COMPONENT: App Controller
+// Owns authentication, shared state, API calls, and routing.
+// UI markup lives in the component files listed above.
+// ============================================================
 function App() {
   const [tickets, setTickets] = useState([]);
   const [authView, setAuthView] = useState('login');
@@ -257,6 +248,7 @@ function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
+  // LOGIC: Load the signed-in user's profile.
   const hydrateUser = async (authUser) => {
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -282,6 +274,7 @@ function App() {
     });
   };
 
+  // LOGIC: Load tickets, staff, departments, batches, and students.
   const loadDashboardData = async () => {
     if (!supabase) return;
     const { data: { session } } = await supabase.auth.getSession();
@@ -440,6 +433,7 @@ function App() {
 
   const recentTickets = useMemo(() => tickets.slice(0, 5), [tickets]);
 
+  // LOGIC: Login and institution registration.
   const handleAuth = async (event) => {
     event.preventDefault();
     if (!supabase) {
@@ -478,6 +472,7 @@ function App() {
     setMessage('Signed in.');
   };
 
+  // LOGIC: Password setup for invited/recovery users.
   const handleSetPassword = async (event) => {
     event.preventDefault();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -504,6 +499,7 @@ function App() {
     setFile(null);
   };
 
+  // LOGIC: Create or update a complaint.
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -600,6 +596,7 @@ function App() {
     setEditingDepartmentId(null);
   };
 
+  // LOGIC: Create staff, student, or admin accounts.
   const handleStaffSubmit = async (event) => {
     event.preventDefault();
     const { data: { session } } = await supabase.auth.getSession();
@@ -646,6 +643,7 @@ function App() {
     setMessage(`${removed.email} removed.`);
   };
 
+  // LOGIC: Create or update service departments.
   const handleDepartmentSubmit = async (event) => {
     event.preventDefault();
     if (editingDepartmentId) {
@@ -689,6 +687,7 @@ function App() {
     setEditingAcademicDeptId(null);
   };
 
+  // LOGIC: Create or update academic departments.
   const handleAcademicDeptSubmit = async (event) => {
     event.preventDefault();
     const { error } = editingAcademicDeptId
@@ -718,6 +717,7 @@ function App() {
     setEditingBatchId(null);
   };
 
+  // LOGIC: Create or update student batches.
   const handleBatchSubmit = async (event) => {
     event.preventDefault();
     const { error } = editingBatchId
@@ -742,6 +742,7 @@ function App() {
     setMessage('Batch removed.');
   };
 
+  // LOGIC: Save a student's first-time profile details.
   const handleProfileCompletionSubmit = async (event) => {
     event.preventDefault();
     setIsSavingProfile(true);
@@ -793,23 +794,15 @@ function App() {
     setIsLandingNavOpen(false);
   };
 
+  // VIEW ROUTE: Password setup screen.
   if (needsPasswordSetup) {
     return (
-      <div className="landing-shell">
-        <main className="landing-main">
-          <section className="hero glass-card" style={{ gridTemplateColumns: '1fr', maxWidth: 480, margin: '80px auto' }}>
-            <div className="glass-card auth-card">
-              <p className="eyebrow">Almost there</p>
-              <h1 style={{ fontSize: '1.6rem' }}>Set your password</h1>
-              <form onSubmit={handleSetPassword} className="auth-form">
-                <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
-                <button type="submit">Set password &amp; continue</button>
-              </form>
-              {message ? <p className="message">{message}</p> : null}
-            </div>
-          </section>
-        </main>
-      </div>
+      <PasswordSetupScreen
+        newPassword={newPassword}
+        setNewPassword={setNewPassword}
+        handleSetPassword={handleSetPassword}
+        message={message}
+      />
     );
   }
 
@@ -817,273 +810,46 @@ function App() {
     return null;
   }
 
+  // VIEW ROUTE: Public landing page and authentication modal.
   if (!currentUser) {
     return (
-      <div className="landing-shell">
-        <header className="topbar">
-          <a className="brand" href="#home" aria-label="UniHelp">
-            <img src="/logo.png" alt="UniHelp" className="brand-logo-img" />
-          </a>
-          <nav className={`topnav ${isLandingNavOpen ? 'open' : ''}`}>
-            <a href="#features" onClick={() => setIsLandingNavOpen(false)}>Features</a>
-            <a href="#workflow" onClick={() => setIsLandingNavOpen(false)}>How it works</a>
-            <a href="#faq" onClick={() => setIsLandingNavOpen(false)}>FAQ</a>
-            <button type="button" className="ghost-btn small" onClick={() => openAuth('login')}>Sign in</button>
-            <button type="button" className="primary-btn small" onClick={() => openAuth('register')}>Get started</button>
-          </nav>
-          <button className="landing-toggle" type="button" onClick={() => setIsLandingNavOpen((v) => !v)} aria-label="Toggle menu">
-            <HamburgerIcon />
-          </button>
-        </header>
-
-        <main className="landing-main">
-          <section className="hero hero-solo glass-card">
-            <motion.div className="hero-copy" initial="hidden" animate="visible" variants={fadeUp}>
-              <p className="eyebrow">Campus services • complaint portal • student support</p>
-              <h1>Modern complaint handling for universities that actually feels professional.</h1>
-              <p>
-                UniHelp gives students, staff, and administrators one clean place to report issues, route requests with AI, and follow progress without the chaos of spreadsheets and email threads.
-              </p>
-              <div className="hero-actions">
-                <button type="button" className="primary-btn" onClick={() => openAuth('register')}>Get started free</button>
-                <button type="button" className="ghost-btn" onClick={() => openAuth('login')}>Sign in</button>
-                <a className="ghost-btn" href="#features">Explore features</a>
-              </div>
-              <div className="metric-row">
-                <div><strong>24/7</strong><span>visibility</span></div>
-                <div><strong>AI</strong><span>triage</span></div>
-                <div><strong>Secure</strong><span>records</span></div>
-              </div>
-            </motion.div>
-          </section>
-
-          <motion.div
-            className="capability-bar"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            {capabilities.map((item) => (
-              <motion.div key={item.label} className="capability-item" variants={fadeUp}>
-                <item.icon />
-                <span>{item.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <div className="section-heading">
-            <p className="eyebrow">Why UniHelp</p>
-            <h2>Everything a campus support team needs, nothing it doesn't.</h2>
-          </div>
-
-          <motion.section
-            id="features"
-            className="feature-grid"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            {features.map((feature) => (
-              <motion.article key={feature.title} className="glass-card info-card" variants={fadeUp}>
-                <h3>{feature.title}</h3>
-                <p>{feature.text}</p>
-              </motion.article>
-            ))}
-          </motion.section>
-
-          <div className="section-heading">
-            <p className="eyebrow">How it works</p>
-            <h2>From report to resolution in three steps.</h2>
-          </div>
-
-          <motion.section
-            id="workflow"
-            className="workflow-grid"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            {workflowSteps.map((item) => (
-              <motion.article key={item.step} className="glass-card workflow-card" variants={fadeUp}>
-                <span className="step-badge">{item.step}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </motion.article>
-            ))}
-          </motion.section>
-
-          <div className="section-heading">
-            <p className="eyebrow">Questions</p>
-            <h2>Frequently asked questions</h2>
-            <p>Everything you need to know before you get started.</p>
-          </div>
-
-          <section id="faq" className="faq-list">
-            {faqs.map((item, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div key={item.q} className={`faq-item glass-card ${isOpen ? 'open' : ''}`}>
-                  <button type="button" className="faq-question" onClick={() => setOpenFaqIndex(isOpen ? -1 : index)}>
-                    <span>{item.q}</span>
-                    <span className="faq-icon">{isOpen ? '−' : '+'}</span>
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen ? (
-                      <motion.div
-                        className="faq-answer"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
-                      >
-                        <p>{item.a}</p>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </section>
-
-          <motion.section
-            className="cta-banner glass-card"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.4 }}
-          >
-            <div>
-              <p className="eyebrow">Ready when you are</p>
-              <h2>Bring order to your campus complaint process today.</h2>
-              <p>Create an account and see how quickly AI-assisted routing changes the way your team works.</p>
-            </div>
-            <div className="hero-actions">
-              <button type="button" className="primary-btn" onClick={() => openAuth('register')}>Get started free</button>
-            </div>
-          </motion.section>
-        </main>
-
-        <footer className="site-footer">
-          <div className="footer-grid">
-            <div className="footer-brand">
-              <a className="brand" href="#home" aria-label="UniHelp">
-                <img src="/logo.png" alt="UniHelp" className="brand-logo-img" />
-              </a>
-              <p>A calmer way for students, staff, and administrators to report, route, and resolve campus issues.</p>
-            </div>
-            <div className="footer-col">
-              <h4>Product</h4>
-              <a href="#features">Features</a>
-              <a href="#workflow">How it works</a>
-              <a href="#faq">FAQ</a>
-            </div>
-            <div className="footer-col">
-              <h4>Get started</h4>
-              <button type="button" onClick={() => openAuth('login')}>Login</button>
-              <button type="button" onClick={() => openAuth('register')}>Create account</button>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} UniHelp. Built for campus support teams.</span>
-          </div>
-        </footer>
-
-        <AnimatePresence>
-          {isAuthModalOpen ? (
-            <motion.div
-              className="auth-modal-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setIsAuthModalOpen(false)}
-            >
-              <motion.div
-                className="glass-card auth-card auth-modal"
-                initial={{ opacity: 0, y: 24, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 16, scale: 0.97 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <button type="button" className="modal-close" onClick={() => setIsAuthModalOpen(false)} aria-label="Close">
-                  ×
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                  <img src="/logo.png" alt="UniHelp" className="brand-logo-img" style={{ height: '42px', width: 'auto' }} />
-                </div>
-                <p className="eyebrow">{authView === 'login' ? 'Welcome back' : 'Register a new institution'}</p>
-                <div className="toggle-row">
-                  <button type="button" className={authView === 'login' ? 'toggle active' : 'toggle'} onClick={() => setAuthView('login')}>Login</button>
-                  <button type="button" className={authView === 'register' ? 'toggle active' : 'toggle'} onClick={() => setAuthView('register')}>Register</button>
-                </div>
-
-                <form onSubmit={handleAuth} className="auth-form">
-                  {authView === 'register' ? (
-                    <>
-                      <input placeholder="Full name" value={authForm.name} onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })} required />
-                      <input placeholder="Institution name" value={authForm.institutionName} onChange={(e) => setAuthForm({ ...authForm, institutionName: e.target.value })} required />
-                    </>
-                  ) : null}
-                  <input type="email" placeholder="Email address" value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} required />
-                  <input type="password" placeholder="Password" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} required minLength={6} />
-                  {authView === 'register' ? (
-                    <p className="hint-text">This creates a brand-new organization and makes you its admin. Already part of one? Ask your admin for an invite instead — there's no self-serve way to join an existing organization.</p>
-                  ) : null}
-                  <button type="submit">{authView === 'login' ? 'Sign in' : 'Create account'}</button>
-                </form>
-
-                {message ? <p className="message">{message}</p> : null}
-              </motion.div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
+      <LandingPage
+        isLandingNavOpen={isLandingNavOpen}
+        setIsLandingNavOpen={setIsLandingNavOpen}
+        openAuth={openAuth}
+        openFaqIndex={openFaqIndex}
+        setOpenFaqIndex={setOpenFaqIndex}
+        features={features}
+        workflowSteps={workflowSteps}
+        faqs={faqs}
+        capabilities={capabilities}
+        fadeUp={fadeUp}
+        staggerContainer={staggerContainer}
+        isAuthModalOpen={isAuthModalOpen}
+        setIsAuthModalOpen={setIsAuthModalOpen}
+        authView={authView}
+        setAuthView={setAuthView}
+        authForm={authForm}
+        setAuthForm={setAuthForm}
+        handleAuth={handleAuth}
+        message={message}
+      />
     );
   }
 
+  // VIEW ROUTE: Student profile completion screen.
   if (needsStudentProfile) {
     return (
-      <div className="landing-shell">
-        <main className="landing-main">
-          <section className="hero glass-card" style={{ gridTemplateColumns: '1fr', maxWidth: 480, margin: '80px auto' }}>
-            <div className="glass-card auth-card">
-              <p className="eyebrow">Almost there</p>
-              <h1 style={{ fontSize: '1.6rem' }}>Complete your profile</h1>
-              <p style={{ color: 'var(--text-dim)', fontSize: '0.92rem', marginTop: '-8px' }}>
-                Just a few details so staff know who you are and where you're from.
-              </p>
-              <form onSubmit={handleProfileCompletionSubmit} className="auth-form">
-                <input placeholder="Full name" value={profileCompletionForm.name} onChange={(e) => setProfileCompletionForm({ ...profileCompletionForm, name: e.target.value })} required />
-                <input placeholder="Roll number" value={profileCompletionForm.rollNumber} onChange={(e) => setProfileCompletionForm({ ...profileCompletionForm, rollNumber: e.target.value })} required />
-                <select value={profileCompletionForm.academicDepartment} onChange={(e) => setProfileCompletionForm({ ...profileCompletionForm, academicDepartment: e.target.value })} required>
-                  <option value="">Select department</option>
-                  {academicDepartments.map((dept) => (
-                    <option key={dept.id} value={dept.name}>{dept.name}</option>
-                  ))}
-                </select>
-                <select value={profileCompletionForm.batch} onChange={(e) => setProfileCompletionForm({ ...profileCompletionForm, batch: e.target.value })} required>
-                  <option value="">Select batch</option>
-                  {batches.map((batch) => (
-                    <option key={batch.id} value={batch.name}>{batch.name}</option>
-                  ))}
-                </select>
-                <button type="submit" disabled={isSavingProfile}>{isSavingProfile ? 'Saving...' : 'Continue'}</button>
-              </form>
-              {academicDepartments.length === 0 || batches.length === 0 ? (
-                <p className="hint-text">
-                  Your organization hasn't added department/batch options yet — ask your admin to add them in the Students panel.
-                </p>
-              ) : null}
-              {message ? <p className="message">{message}</p> : null}
-              <button className="ghost-btn small" type="button" onClick={handleLogout} style={{ marginTop: 12 }}>Logout</button>
-            </div>
-          </section>
-        </main>
-      </div>
+      <StudentProfileSetupScreen
+        profileCompletionForm={profileCompletionForm}
+        setProfileCompletionForm={setProfileCompletionForm}
+        academicDepartments={academicDepartments}
+        batches={batches}
+        isSavingProfile={isSavingProfile}
+        handleProfileCompletionSubmit={handleProfileCompletionSubmit}
+        handleLogout={handleLogout}
+        message={message}
+      />
     );
   }
 
@@ -1092,472 +858,78 @@ function App() {
   const realtimeLabel = !supabase ? 'Offline mode' : isRealtimeConnected ? 'Live' : 'Connecting';
   const realtimeClass = !supabase || !isRealtimeConnected ? 'topbar-pill offline' : 'topbar-pill';
 
-  const renderActivePanel = () => {
-    if (activePanel === 'overview' && !isStudent) {
-      return (
-        <div className="panel-grid">
-          <section className="glass-card hero-panel">
-            <p className="eyebrow">Welcome back</p>
-            <h2>{heroCopy.heading}</h2>
-            <p>{heroCopy.body}</p>
-            <div className="hero-actions">
-              <button className="primary-btn" type="button" onClick={() => goToPanel('complaints')}>{heroCopy.cta}</button>
-            </div>
-          </section>
-
-          <section className="glass-card stats-panel">
-            <div className="stats-grid">
-              <div><strong><CountUp value={stats.total} /></strong><span>Total tickets</span></div>
-              <div><strong><CountUp value={stats.highPriority} /></strong><span>High priority</span></div>
-              <div><strong><CountUp value={stats.assigned} /></strong><span>Assigned</span></div>
-            </div>
-          </section>
-
-          <section className="glass-card recent-panel">
-            <div className="list-head">
-              <h3>Recent complaints</h3>
-              <span className="pill">Live</span>
-            </div>
-            {recentTickets.map((ticket) => (
-              <div key={ticket.id} className="recent-item">
-                <div>
-                  <strong>{ticket.title}</strong>
-                  <p>{ticket.department}</p>
-                </div>
-                <span className={`pill ${ticket.status.toLowerCase().replace(/\s+/g, '-')}`}>{ticket.status}</span>
-              </div>
-            ))}
-          </section>
-        </div>
-      );
-    }
-
-    if (activePanel === 'departments' && isAdmin) {
-      return (
-        <section className="glass-card panel-card">
-          <div className="list-head">
-            <h3>Department coverage</h3>
-            <span className="pill">Managed by admin</span>
-          </div>
-          <form onSubmit={handleDepartmentSubmit} className="complaint-form">
-            <input placeholder="Department name" value={departmentForm.name} onChange={(e) => setDepartmentForm({ ...departmentForm, name: e.target.value })} required />
-            <input placeholder="Department head" value={departmentForm.head} onChange={(e) => setDepartmentForm({ ...departmentForm, head: e.target.value })} />
-            <select value={departmentForm.status} onChange={(e) => setDepartmentForm({ ...departmentForm, status: e.target.value })}>
-              <option value="Active">Active</option>
-              <option value="Paused">Paused</option>
-            </select>
-            <button type="submit">{editingDepartmentId ? 'Save department' : 'Add department'}</button>
-          </form>
-          <div className="department-grid">
-            {departmentCards.map((dept) => (
-              <div key={dept.id} className={`dept-card ${dept.tone || 'blue'}`}>
-                <div className="list-head">
-                  <h4>{dept.name}</h4>
-                  <span className="pill">{dept.status || 'Active'}</span>
-                </div>
-                <p>Head: {dept.head || 'Pending'}</p>
-                <div className="action-row">
-                  <button className="ghost-btn small" type="button" onClick={() => { setEditingDepartmentId(dept.id); setDepartmentForm({ name: dept.name, head: dept.head || '', status: dept.status || 'Active' }); setActivePanel('departments'); }}>Edit</button>
-                  <button className="ghost-btn small danger" type="button" onClick={() => deleteDepartment(dept.id)}>Delete</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
-    if (activePanel === 'staff' && isAdmin) {
-      return (
-        <section className="glass-card panel-card">
-          <div className="list-head">
-            <h3>Staff roster</h3>
-            <span className="pill">Managed by admin</span>
-          </div>
-          <form onSubmit={handleStaffSubmit} className="complaint-form">
-            <input placeholder="Full name" value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })} required />
-            <input type="email" placeholder="Email" value={staffForm.email} onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })} required />
-            <input
-              type="text"
-              placeholder="Temporary password"
-              value={staffForm.temporary_password}
-              onChange={(e) => setStaffForm({ ...staffForm, temporary_password: e.target.value })}
-              required
-              minLength={6}
-            />
-            <select
-              value={staffForm.role}
-              onChange={(e) => setStaffForm({
-                ...staffForm,
-                role: e.target.value,
-                department: e.target.value === 'staff' ? staffForm.department : '',
-                roll_number: e.target.value === 'student' ? staffForm.roll_number : '',
-                academic_department: e.target.value === 'student' ? staffForm.academic_department : '',
-                batch: e.target.value === 'student' ? staffForm.batch : ''
-              })}
-            >
-              <option value="student">Student</option>
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
-            </select>
-            {staffForm.role === 'staff' ? (
-              <select value={staffForm.department} onChange={(e) => setStaffForm({ ...staffForm, department: e.target.value })} required>
-                <option value="">Select department</option>
-                {departmentCards.map((dept) => (
-                  <option key={dept.id} value={dept.name}>{dept.name}</option>
-                ))}
-              </select>
-            ) : null}
-            {staffForm.role === 'student' ? (
-              <>
-                <input
-                  placeholder="Roll number"
-                  value={staffForm.roll_number}
-                  onChange={(e) => setStaffForm({ ...staffForm, roll_number: e.target.value })}
-                  required
-                />
-                <select
-                  value={staffForm.academic_department}
-                  onChange={(e) => setStaffForm({ ...staffForm, academic_department: e.target.value })}
-                  required
-                >
-                  <option value="">Select student department</option>
-                  {academicDepartments.map((dept) => (
-                    <option key={dept.id} value={dept.name}>{dept.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={staffForm.batch}
-                  onChange={(e) => setStaffForm({ ...staffForm, batch: e.target.value })}
-                  required
-                >
-                  <option value="">Select batch</option>
-                  {batches.map((batch) => (
-                    <option key={batch.id} value={batch.name}>{batch.name}</option>
-                  ))}
-                </select>
-              </>
-            ) : null}
-            {staffForm.role === 'staff' ? (
-              <p className="hint-text">Staff only ever see and handle complaints filed under this department.</p>
-            ) : null}
-            {staffForm.role === 'student' ? (
-              <p className="hint-text">Students receive a ready profile and can sign in with only email and password.</p>
-            ) : null}
-            <button type="submit">Send invite</button>
-          </form>
-          <div className="staff-list">
-            {staffMembers.map((member) => (
-              <div key={member.id} className="staff-item">
-                <div>
-                  <strong>{member.name}</strong>
-                  <p>{member.role} • {member.department || 'No department'}</p>
-                </div>
-                <div className="action-row">
-                  <span className="pill">{member.email}</span>
-                  {member.role !== 'admin' ? (
-                    <button className="ghost-btn small danger" type="button" onClick={() => removeAccount(member)}>Remove</button>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
-    if (activePanel === 'students' && isAdmin) {
-      const filteredStudents = studentDeptFilter
-        ? students.filter((student) => student.academic_department === studentDeptFilter)
-        : students;
-      return (
-        <div className="panel-grid">
-          <section className="glass-card panel-card">
-            <div className="list-head">
-              <h3>Academic departments</h3>
-              <span className="pill">Managed by admin</span>
-            </div>
-            <form onSubmit={handleAcademicDeptSubmit} className="complaint-form">
-              <input placeholder="e.g. Computer Science" value={academicDeptForm.name} onChange={(e) => setAcademicDeptForm({ name: e.target.value })} required />
-              <button type="submit">{editingAcademicDeptId ? 'Save department' : 'Add department'}</button>
-              {editingAcademicDeptId ? <button type="button" className="ghost-btn small" onClick={resetAcademicDeptForm}>Cancel</button> : null}
-            </form>
-            <div className="staff-list">
-              {academicDepartments.map((dept) => (
-                <div key={dept.id} className="staff-item">
-                  <strong>{dept.name}</strong>
-                  <div className="action-row">
-                    <button className="ghost-btn small" type="button" onClick={() => { setEditingAcademicDeptId(dept.id); setAcademicDeptForm({ name: dept.name }); }}>Edit</button>
-                    <button className="ghost-btn small danger" type="button" onClick={() => deleteAcademicDept(dept.id)}>Delete</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="glass-card panel-card">
-            <div className="list-head">
-              <h3>Batches</h3>
-              <span className="pill">Managed by admin</span>
-            </div>
-            <form onSubmit={handleBatchSubmit} className="complaint-form">
-              <input placeholder="e.g. 2024" value={batchForm.name} onChange={(e) => setBatchForm({ name: e.target.value })} required />
-              <button type="submit">{editingBatchId ? 'Save batch' : 'Add batch'}</button>
-              {editingBatchId ? <button type="button" className="ghost-btn small" onClick={resetBatchForm}>Cancel</button> : null}
-            </form>
-            <div className="staff-list">
-              {batches.map((batch) => (
-                <div key={batch.id} className="staff-item">
-                  <strong>{batch.name}</strong>
-                  <div className="action-row">
-                    <button className="ghost-btn small" type="button" onClick={() => { setEditingBatchId(batch.id); setBatchForm({ name: batch.name }); }}>Edit</button>
-                    <button className="ghost-btn small danger" type="button" onClick={() => deleteBatch(batch.id)}>Delete</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="glass-card panel-card" style={{ gridColumn: '1 / -1' }}>
-            <div className="list-head">
-              <h3>Students</h3>
-              <select value={studentDeptFilter} onChange={(e) => setStudentDeptFilter(e.target.value)} style={{ width: 'auto' }}>
-                <option value="">All departments</option>
-                {academicDepartments.map((dept) => (
-                  <option key={dept.id} value={dept.name}>{dept.name}</option>
-                ))}
-              </select>
-            </div>
-            {filteredStudents.length === 0 ? (
-              <p className="empty-state">No students yet.</p>
-            ) : (
-              <div className="staff-list">
-                {filteredStudents.map((student) => (
-                  <div key={student.id} className="staff-item">
-                    <div>
-                      <strong>{student.name}</strong>
-                      <p>{student.roll_number || 'No roll number'} • {student.academic_department || 'No department'} • {student.batch || 'No batch'}</p>
-                    </div>
-                    <div className="action-row">
-                      <span className="pill">{student.email}</span>
-                      <button className="ghost-btn small danger" type="button" onClick={() => removeAccount(student)}>Remove</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      );
-    }
-
-    if (activePanel === 'complaints') {
-      return (
-        <div className="complaint-layout">
-          <section className="glass-card form-card">
-            <div className="list-head">
-              <h3>{editingTicketId ? 'Edit complaint' : 'Create complaint'}</h3>
-              {editingTicketId ? <button className="ghost-btn small" type="button" onClick={resetForm}>Cancel</button> : null}
-            </div>
-            <form onSubmit={handleSubmit} className="complaint-form">
-              {!isStudent ? (
-                <>
-                  <input placeholder="Student name" value={form.studentName} onChange={(e) => setForm({ ...form, studentName: e.target.value })} required />
-                  <input placeholder="Student ID" value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} required />
-                </>
-              ) : null}
-
-              {isAdmin ? (
-                <input placeholder="Complaint title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-              ) : null}
-
-              <textarea placeholder="Describe the issue in detail" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={isAdmin ? 5 : 7} required />
-
-              {isAdmin ? (
-                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  <option value="General">General</option>
-                  <option value="Academic">Academic</option>
-                  <option value="Facilities">Facilities</option>
-                  <option value="IT Support">IT Support</option>
-                  <option value="Finance">Finance</option>
-                </select>
-              ) : null}
-
-              {!isStudent ? (
-                <>
-                  {editingTicketId ? (
-                    <input placeholder="Department" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-                  ) : (
-                    <p className="hint-text">The department is assigned automatically by AI based on the description and attachment.</p>
-                  )}
-                  <select value={form.assignedStaffId} onChange={(e) => setForm({ ...form, assignedStaffId: e.target.value })}>
-                    <option value="">Unassigned</option>
-                    {staffMembers.map((member) => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                  </select>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                    <option value="New">New</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Escalated">Escalated</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
-                </>
-              ) : !editingTicketId ? (
-                <p className="hint-text">Our AI assistant reads your description (and attachment) and routes it to the right department automatically.</p>
-              ) : null}
-
-              <div className="upload-box upload-box-disabled" title="File evidence attachment feature is coming soon">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    📎 Upload evidence
-                  </span>
-                  <span className="pill-coming-soon">Coming Soon</span>
-                </div>
-                <p className="hint-text" style={{ margin: '2px 0 0', fontSize: '0.78rem', opacity: 0.8 }}>File attachments will be available in the upcoming update.</p>
-              </div>
-
-              <button type="submit" disabled={isSubmittingTicket}>
-                {isSubmittingTicket ? 'Analyzing complaint...' : editingTicketId ? 'Save changes' : 'Send complaint'}
-              </button>
-            </form>
-            {message ? <p className="message">{message}</p> : null}
-          </section>
-
-          <section className="glass-card list-card">
-            <div className="list-head">
-              <h3>{isStudent ? 'My requests' : isStaff ? 'My queue' : 'Queue'}</h3>
-              <span className="pill">{tickets.length} items</span>
-            </div>
-            {tickets.length === 0 ? (
-              <p className="empty-state">No complaints yet. Your first report will appear here.</p>
-            ) : (
-              <motion.div variants={staggerContainer} initial="hidden" animate="visible">
-                {tickets.map((ticket) => (
-                  <motion.article key={ticket.id} className="ticket-item" variants={fadeUp} whileHover={{ y: -4 }} transition={{ duration: 0.18 }}>
-                    <div className="ticket-top">
-                      <h4>{ticket.title}</h4>
-                      <span className={`pill ${ticket.status.toLowerCase().replace(/\s+/g, '-')}`}>{ticket.status}</span>
-                    </div>
-                    <p>{ticket.description}</p>
-                    <div className="meta-row">
-                      <span>{ticket.student_name}</span>
-                      <span>{ticket.department}</span>
-                      <span>{ticket.assigned?.name || 'No staff'}</span>
-                      <span>{ticket.priority || 'Medium'}</span>
-                    </div>
-                    {!isStudent ? (
-                      <div className="action-row">
-                        <button className="ghost-btn small" type="button" onClick={() => startEdit(ticket)}>Edit</button>
-                        {isAdmin ? (
-                          <button className="ghost-btn small danger" type="button" onClick={() => deleteTicket(ticket.id)}>Delete</button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </motion.article>
-                ))}
-              </motion.div>
-            )}
-          </section>
-        </div>
-      );
-    }
-
-    if (activePanel === 'profile') {
-      return (
-        <section className="glass-card panel-card profile-card">
-          <div className="profile-header">
-            <div>
-              <p className="eyebrow">Profile</p>
-              <h3>{currentUser.name}</h3>
-              <p>{currentUser.email}</p>
-            </div>
-            <span className="role-badge">{currentUser.role}</span>
-          </div>
-          <div className="profile-details">
-            <div>
-              <strong>Department</strong>
-              <p>{currentUser.department || 'Not set'}</p>
-            </div>
-            <div>
-              <strong>Organization</strong>
-              <p>{currentUser.organizationName || '—'}</p>
-            </div>
-            <div>
-              <strong>Member since</strong>
-              <p>{currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : '—'}</p>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    return null;
+  // COMPONENT DATA: Props used by DashboardPanels.jsx
+  const panelContext = {
+    activePanel,
+    isStudent,
+    isAdmin,
+    isStaff,
+    heroCopy,
+    goToPanel,
+    stats,
+    recentTickets,
+    departmentForm,
+    setDepartmentForm,
+    editingDepartmentId,
+    setEditingDepartmentId,
+    handleDepartmentSubmit,
+    departmentCards,
+    setActivePanel,
+    deleteDepartment,
+    staffForm,
+    setStaffForm,
+    handleStaffSubmit,
+    academicDepartments,
+    batches,
+    staffMembers,
+    removeAccount,
+    studentDeptFilter,
+    setStudentDeptFilter,
+    students,
+    academicDeptForm,
+    setAcademicDeptForm,
+    editingAcademicDeptId,
+    setEditingAcademicDeptId,
+    handleAcademicDeptSubmit,
+    resetAcademicDeptForm,
+    deleteAcademicDept,
+    batchForm,
+    setBatchForm,
+    editingBatchId,
+    setEditingBatchId,
+    handleBatchSubmit,
+    resetBatchForm,
+    deleteBatch,
+    editingTicketId,
+    resetForm,
+    handleSubmit,
+    form,
+    setForm,
+    isSubmittingTicket,
+    message,
+    tickets,
+    startEdit,
+    deleteTicket,
+    currentUser
   };
 
+  // VIEW ROUTE: Signed-in dashboard.
   return (
-    <div className="app-shell" data-role={currentUser.role}>
-      <div className="orb orb-one" />
-      <div className="orb orb-two" />
-      <div className={`nav-backdrop ${isNavOpen ? 'open' : ''}`} onClick={() => setIsNavOpen(false)} />
-      <div className="admin-shell">
-        <aside className={`sidebar glass-card${isNavOpen ? ' open' : ''}`}>
-          <div className="sidebar-brand">
-            <a className="brand" href="#home" aria-label="UniHelp">
-              <img src="/logo.png" alt="UniHelp" className="brand-logo-img" />
-            </a>
-            <h2>{ROLE_LABELS[currentUser.role] || 'My Portal'}</h2>
-            <p className="org-name">{currentUser.organizationName || 'No organization'}</p>
-          </div>
-          <nav className="sidebar-nav">
-            {navItems.map((item) => (
-              <button key={item.id} className={activePanel === item.id ? 'sidebar-link active' : 'sidebar-link'} type="button" onClick={() => goToPanel(item.id)}>
-                {activePanel === item.id ? (
-                  <motion.span className="nav-pill" layoutId="navPill" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />
-                ) : null}
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-                  <item.icon />
-                  {item.label}
-                </span>
-              </button>
-            ))}
-          </nav>
-          <div className="sidebar-footer">
-            <p>{currentUser.name}</p>
-            <span className="role-badge">{currentUser.role}</span>
-            <button className="ghost-btn small" type="button" onClick={handleLogout}>Logout</button>
-          </div>
-        </aside>
-
-        <main className="admin-main">
-          <header className="admin-topbar glass-card">
-            <div className="topbar-heading">
-              <button className="mobile-nav-toggle" type="button" onClick={() => setIsNavOpen(true)} aria-label="Open menu">
-                <HamburgerIcon />
-              </button>
-              <div>
-                <p className="eyebrow">{ROLE_LABELS[currentUser.role] || 'My Portal'} · {currentUser.organizationName || 'No organization'}</p>
-                <h1>{getPanelTitle(activePanel, currentUser.role)}</h1>
-              </div>
-            </div>
-            <div className={realtimeClass}>{realtimeLabel}</div>
-          </header>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activePanel}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -14 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-            >
-              {renderActivePanel()}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
-    </div>
+    <DashboardShell
+      currentUser={currentUser}
+      portalLabel={ROLE_LABELS[currentUser.role] || 'My Portal'}
+      navItems={navItems}
+      activePanel={activePanel}
+      isNavOpen={isNavOpen}
+      setIsNavOpen={setIsNavOpen}
+      goToPanel={goToPanel}
+      handleLogout={handleLogout}
+      panelTitle={getPanelTitle(activePanel, currentUser.role)}
+      realtimeClass={realtimeClass}
+      realtimeLabel={realtimeLabel}
+    >
+      <DashboardPanels panelContext={panelContext} />
+    </DashboardShell>
   );
 }
 

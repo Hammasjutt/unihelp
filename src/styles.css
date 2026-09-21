@@ -198,6 +198,104 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   background: var(--accent-2);
 }
 
+/* Landing page: top-right navbar "Sign in" button */
+.landing-nav-sign-in-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 12px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.84rem;
+}
+
+/* Landing page: top-right navbar "Sign in" hover */
+.landing-nav-sign-in-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* Landing page: top-right navbar "Get started" button */
+.landing-nav-get-started-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #4F47E5;
+  color: white;
+  padding: 7px 12px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.84rem;
+  box-shadow: var(--shadow-xs);
+}
+
+/* Landing page: top-right navbar "Get started" hover */
+.landing-nav-get-started-btn:hover:not(:disabled) {
+  background: #4F47E5;
+}
+
+/* Landing page: hero "Get started free" button */
+.landing-hero-get-started-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-1);
+  color: white;
+  padding: 11px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.94rem;
+  box-shadow: var(--shadow-xs);
+}
+
+/* Landing page: hero "Get started free" hover */
+.landing-hero-get-started-btn:hover:not(:disabled) {
+  background: var(--accent-2);
+}
+
+/* Landing page: hero "Sign in" button */
+.landing-hero-sign-in-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.94rem;
+}
+
+/* Landing page: hero "Sign in" hover */
+.landing-hero-sign-in-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* Landing page: hero "Explore features" link button */
+.landing-hero-explore-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.94rem;
+}
+
+/* Landing page: hero "Explore features" hover */
+.landing-hero-explore-link:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
 .ghost-btn, .toggle {
   display: inline-flex;
   align-items: center;
@@ -366,6 +464,7 @@ input:focus, textarea:focus, select:focus {
 
 .faq-list { display: grid; gap: 10px; margin-top: 24px; max-width: 720px; margin-left: auto; margin-right: auto; }
 .faq-item { padding: 0; overflow: hidden; }
+/* Landing page: FAQ question expand/collapse button */
 .faq-question {
   width: 100%;
   display: flex;
@@ -379,6 +478,7 @@ input:focus, textarea:focus, select:focus {
   text-align: left;
   font-size: 0.96rem;
 }
+/* Landing page: FAQ question button hover */
 .faq-question:hover { transform: none; background: var(--surface-soft); }
 .faq-icon {
   flex-shrink: 0;
@@ -413,8 +513,25 @@ input:focus, textarea:focus, select:focus {
 .cta-banner .eyebrow { color: #c7d2fe; }
 .cta-banner h2 { margin: 8px 0 6px; font-size: clamp(1.3rem, 2.2vw, 1.7rem); color: white; font-weight: 700; }
 .cta-banner p { color: #cbd5e1; margin: 0; max-width: 460px; }
-.cta-banner .primary-btn { background: white; color: var(--text); }
-.cta-banner .primary-btn:hover { background: #f1f5f9; }
+
+/* Landing page: dark CTA banner "Get started free" button */
+.landing-cta-get-started-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  color: var(--text);
+  padding: 11px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.94rem;
+  box-shadow: var(--shadow-xs);
+}
+
+/* Landing page: dark CTA banner "Get started free" hover */
+.landing-cta-get-started-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+}
 
 /* ---------- Footer ---------- */
 
@@ -428,8 +545,36 @@ input:focus, textarea:focus, select:focus {
 .footer-brand p { color: var(--text-faint); font-size: 0.88rem; margin: 10px 0 0; max-width: 300px; line-height: 1.6; }
 .footer-col { display: grid; gap: 10px; align-content: start; }
 .footer-col h4 { margin: 0 0 4px; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-faint); font-weight: 600; }
-.footer-col a, .footer-col button { color: var(--text-dim); font-size: 0.9rem; background: none; padding: 0; text-align: left; }
-.footer-col a:hover, .footer-col button:hover { color: var(--text); }
+.footer-col a { color: var(--text-dim); font-size: 0.9rem; }
+.footer-col a:hover { color: var(--text); }
+
+/* Landing page: footer "Login" button */
+.landing-footer-login-btn {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  background: none;
+  padding: 0;
+  text-align: left;
+}
+
+/* Landing page: footer "Login" hover */
+.landing-footer-login-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+
+/* Landing page: footer "Create account" button */
+.landing-footer-create-account-btn {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  background: none;
+  padding: 0;
+  text-align: left;
+}
+
+/* Landing page: footer "Create account" hover */
+.landing-footer-create-account-btn:hover:not(:disabled) {
+  color: var(--text);
+}
 .footer-bottom {
   margin-top: 28px;
   padding: 20px 0;
@@ -529,7 +674,9 @@ input:focus, textarea:focus, select:focus {
   background: var(--accent-soft);
   z-index: -1;
 }
-.mobile-nav-toggle, .landing-toggle { display: none; }
+.mobile-nav-toggle { display: none; }
+/* Landing page: mobile hamburger menu button (hidden on desktop) */
+.landing-toggle { display: none; }
 
 .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); display: grid; gap: 8px; }
 .sidebar-footer p { margin: 0; font-weight: 600; font-size: 0.92rem; }
@@ -620,7 +767,7 @@ input:focus, textarea:focus, select:focus {
 .ticket-item p { color: var(--text-dim); font-size: 0.9rem; margin: 8px 0 0; }
 
 .pill { padding: 5px 10px; border-radius: 999px; font-size: 0.76rem; font-weight: 600; background: var(--surface-soft); color: var(--text-dim); }
-.pill.new { background: #dbeafe; color: #1d4ed8; }
+.pill.new { background: #dbeafe; color: #d81d1d; }
 .pill.assigned { background: #dcfce7; color: #15803d; }
 .pill.in-progress { background: #fef3c7; color: #b45309; }
 .pill.escalated { background: #fee2e2; color: #b91c1c; }
@@ -710,6 +857,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 @media (max-width: 760px) {
+  /* Landing page: mobile hamburger menu button */
   .landing-toggle {
     display: inline-flex;
     align-items: center;
@@ -744,7 +892,8 @@ input:focus, textarea:focus, select:focus {
   .topnav.open { max-height: 320px; opacity: 1; pointer-events: auto; padding: 12px 10px; }
   .topnav a { padding: 10px 8px; border-radius: var(--radius-sm); }
   .topnav a:hover { background: var(--surface-soft); }
-  .topnav .ghost-btn, .topnav .primary-btn { margin-top: 2px; justify-content: center; }
+  .landing-nav-sign-in-btn { margin-top: 2px; justify-content: center; }
+  .landing-nav-get-started-btn { margin-top: 2px; justify-content: center; }
 }
 
 @media (max-width: 600px) {
@@ -755,4 +904,559 @@ input:focus, textarea:focus, select:focus {
   .glass-card { padding: 18px; border-radius: var(--radius-md); }
   .capability-bar { grid-template-columns: 1fr; }
   .site-footer { padding: 24px 16px 8px; }
+}
+
+/* ============================================================
+   LANDING PAGE DESIGN
+   Scoped to .landing-page so dashboard/auth screens stay intact.
+   Inspired by the supplied CampusFix reference layout.
+   ============================================================ */
+
+.landing-page {
+  --landing-navy: #17164f;
+  --landing-indigo: #4f46e5;
+  --landing-blue: #1597e5;
+  --landing-muted: #64748b;
+  --landing-border: rgba(99, 102, 241, 0.14);
+  --landing-shadow: 0 18px 50px rgba(65, 70, 150, 0.1);
+  max-width: none;
+  min-height: 100vh;
+  padding: 12px clamp(20px, 4vw, 68px) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 9%, rgba(99, 102, 241, 0.1), transparent 25%),
+    radial-gradient(circle at 88% 30%, rgba(14, 165, 233, 0.08), transparent 23%),
+    #f4f5ff;
+}
+
+/* Landing page: floating navbar */
+.landing-page .topbar {
+  position: sticky;
+  top: 12px;
+  z-index: 40;
+  max-width: 1320px;
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 14px 38px rgba(67, 56, 202, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.landing-page .brand-logo-img {
+  height: 60px;
+  max-width: 230px;
+}
+
+.landing-page .topnav {
+  gap: clamp(18px, 2.4vw, 38px);
+  color: #5b6682;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.landing-page .topnav a {
+  padding: 8px 0;
+}
+
+.landing-page .topnav a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--landing-indigo), var(--landing-blue));
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.landing-page .topnav a:hover::after {
+  transform: scaleX(1);
+}
+
+.landing-page .landing-nav-sign-in-btn {
+  background: #ffffff;
+  border: 1px solid #e1e5f3;
+  color: var(--landing-navy);
+  padding: 10px 17px;
+  border-radius: 11px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.landing-page .landing-nav-sign-in-btn:hover:not(:disabled) {
+  background: #f6f7ff;
+  border-color: #cdd2eb;
+  box-shadow: 0 8px 20px rgba(55, 48, 163, 0.08);
+}
+
+.landing-page .landing-nav-get-started-btn {
+  background: var(--landing-navy);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 11px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: 0 9px 22px rgba(23, 22, 79, 0.2);
+}
+
+.landing-page .landing-nav-get-started-btn:hover:not(:disabled) {
+  background: #27236c;
+  box-shadow: 0 12px 25px rgba(23, 22, 79, 0.26);
+}
+
+.landing-page .landing-main {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+/* Landing page: centered reference-style hero */
+.landing-page .hero-solo {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: clamp(68px, 7vw, 100px) 24px 72px;
+  text-align: center;
+}
+
+.landing-page .hero-solo .hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-page .hero-solo .eyebrow {
+  margin-bottom: 26px;
+  color: #66738f;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.landing-page .hero-solo .eyebrow::before {
+  display: none;
+}
+
+.landing-page .hero-solo .hero-copy h1 {
+  max-width: 1000px;
+  margin: 0;
+  color: var(--landing-navy);
+  font-size: clamp(3rem, 5.2vw, 4.85rem);
+  font-weight: 850;
+  line-height: 1.02;
+  letter-spacing: -0.065em;
+}
+
+.landing-page .hero-solo .hero-copy h1 span {
+  display: block;
+}
+
+.landing-page .hero-solo .hero-copy h1 .landing-title-gradient {
+  padding-bottom: 0.08em;
+  background: linear-gradient(100deg, #5146ef 5%, #1597e5 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-page .hero-solo .hero-copy > p:not(.eyebrow) {
+  max-width: 760px;
+  margin: 30px auto 0;
+  color: #586781;
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+.landing-page .hero-actions {
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 38px;
+}
+
+.landing-page .landing-hero-get-started-btn {
+  min-height: 50px;
+  padding: 13px 24px;
+  background: var(--landing-navy);
+  border-radius: 11px;
+  box-shadow: 0 12px 28px rgba(23, 22, 79, 0.22);
+}
+
+.landing-page .landing-hero-get-started-btn:hover:not(:disabled) {
+  background: #27236c;
+  box-shadow: 0 15px 32px rgba(23, 22, 79, 0.28);
+}
+
+.landing-page .landing-hero-sign-in-btn,
+.landing-page .landing-hero-explore-link {
+  min-height: 50px;
+  padding: 13px 20px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--landing-navy);
+  border-radius: 11px;
+  font-weight: 700;
+}
+
+.landing-page .landing-hero-sign-in-btn:hover:not(:disabled),
+.landing-page .landing-hero-explore-link:hover {
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(99, 102, 241, 0.13);
+}
+
+.landing-page .hero-solo .metric-row {
+  width: min(660px, 100%);
+  max-width: none;
+  gap: 16px;
+  margin-top: 52px;
+}
+
+.landing-page .metric-row div {
+  align-items: center;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(67, 56, 202, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.landing-page .metric-row strong {
+  color: var(--landing-navy);
+  font-size: 1.06rem;
+  font-weight: 800;
+}
+
+.landing-page .metric-row span {
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Landing page: capability strip */
+.landing-page .capability-bar {
+  max-width: 980px;
+  gap: 12px;
+  margin: 12px auto 0;
+}
+
+.landing-page .capability-item {
+  justify-content: center;
+  min-height: 54px;
+  padding: 13px 14px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--landing-border);
+  border-radius: 14px;
+  color: #63708b;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.landing-page .capability-item svg {
+  color: var(--landing-indigo);
+}
+
+/* Landing page: shared section headings */
+.landing-page .section-heading {
+  max-width: 760px;
+  margin: 120px auto 0;
+}
+
+.landing-page .section-heading .eyebrow {
+  color: #71809b;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.landing-page .section-heading .eyebrow::before {
+  background: var(--landing-blue);
+}
+
+.landing-page .section-heading h2 {
+  margin: 14px 0 8px;
+  color: var(--landing-navy);
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.landing-page .section-heading > p:not(.eyebrow) {
+  color: #76829a;
+  line-height: 1.7;
+}
+
+/* Landing page: feature and workflow cards */
+.landing-page .feature-grid,
+.landing-page .workflow-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 34px;
+}
+
+.landing-page .info-card,
+.landing-page .workflow-card {
+  position: relative;
+  min-height: 230px;
+  padding: 30px 28px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--landing-border);
+  border-radius: 17px;
+  box-shadow: var(--landing-shadow);
+}
+
+.landing-page .info-card::before {
+  content: '✦';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 24px;
+  background: #eef2ff;
+  border: 1px solid #cdd5ff;
+  border-radius: 11px;
+  color: var(--landing-indigo);
+  font-size: 1rem;
+}
+
+.landing-page .info-card:nth-child(2)::before {
+  content: '▣';
+}
+
+.landing-page .info-card:nth-child(3)::before {
+  content: '◷';
+}
+
+.landing-page .info-card:hover,
+.landing-page .workflow-card:hover {
+  border-color: rgba(79, 70, 229, 0.26);
+  box-shadow: 0 22px 48px rgba(67, 56, 202, 0.14);
+  transform: translateY(-6px);
+}
+
+.landing-page .info-card h3,
+.landing-page .workflow-card h3 {
+  margin-bottom: 10px;
+  color: var(--landing-navy);
+  font-size: 1.04rem;
+  font-weight: 800;
+}
+
+.landing-page .info-card p,
+.landing-page .workflow-card p {
+  color: #68758e;
+  font-size: 0.91rem;
+  line-height: 1.7;
+}
+
+.landing-page .workflow-card .step-badge {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 24px;
+  background: #eef2ff;
+  border: 1px solid #cdd5ff;
+  border-radius: 11px;
+  color: var(--landing-indigo);
+  font-size: 0.88rem;
+}
+
+/* Landing page: FAQ */
+.landing-page .faq-list {
+  max-width: 880px;
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.landing-page .faq-item {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--landing-border);
+  border-radius: 15px;
+  box-shadow: 0 10px 28px rgba(67, 56, 202, 0.06);
+}
+
+.landing-page .faq-question {
+  padding: 20px 24px;
+  color: var(--landing-navy);
+}
+
+.landing-page .faq-item.open .faq-icon {
+  background: var(--landing-navy);
+  border-color: var(--landing-navy);
+}
+
+/* Landing page: final CTA */
+.landing-page .cta-banner {
+  margin-top: 120px;
+  padding: 48px 52px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(56, 189, 248, 0.3), transparent 38%),
+    linear-gradient(135deg, #17164f, #282474);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(23, 22, 79, 0.24);
+}
+
+.landing-page .cta-banner h2 {
+  max-width: 620px;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  letter-spacing: -0.04em;
+}
+
+.landing-page .landing-cta-get-started-btn {
+  min-height: 50px;
+  padding: 13px 22px;
+  border-radius: 11px;
+  color: var(--landing-navy);
+  box-shadow: 0 10px 25px rgba(8, 15, 48, 0.18);
+}
+
+/* Landing page: footer card */
+.landing-page .site-footer {
+  max-width: 1160px;
+  margin: 86px auto 0;
+  padding: 0 0 28px;
+}
+
+.landing-page .footer-grid {
+  grid-template-columns: 1.4fr 0.8fr 0.8fr;
+  gap: 42px;
+  padding: 34px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--landing-border);
+  border-radius: 19px;
+  box-shadow: var(--landing-shadow);
+}
+
+.landing-page .footer-col h4 {
+  color: var(--landing-navy);
+}
+
+.landing-page .footer-bottom {
+  border-top: 0;
+  color: #9aa5bb;
+}
+
+@media (max-width: 900px) {
+  .landing-page .feature-grid,
+  .landing-page .workflow-grid {
+    grid-template-columns: 1fr;
+    max-width: 680px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .landing-page .info-card,
+  .landing-page .workflow-card {
+    min-height: auto;
+  }
+
+  .landing-page .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .landing-page {
+    padding: 10px 16px 0;
+  }
+
+  .landing-page .topbar {
+    top: 8px;
+    min-height: 66px;
+    padding: 8px 12px;
+    border-radius: 17px;
+  }
+
+  .landing-page .brand-logo-img {
+    height: 50px;
+  }
+
+  .landing-page .topnav {
+    top: 74px;
+    right: 0;
+    left: 0;
+    gap: 4px;
+    border-radius: 16px;
+  }
+
+  .landing-page .topnav a {
+    padding: 11px 12px;
+  }
+
+  .landing-page .landing-nav-sign-in-btn,
+  .landing-page .landing-nav-get-started-btn {
+    width: 100%;
+  }
+
+  .landing-page .hero-solo {
+    padding: 76px 4px 54px;
+  }
+
+  .landing-page .hero-solo .hero-copy h1 {
+    font-size: clamp(2.55rem, 13vw, 4.2rem);
+    letter-spacing: -0.055em;
+  }
+
+  .landing-page .hero-solo .hero-copy > p:not(.eyebrow) {
+    margin-top: 24px;
+    font-size: 1rem;
+  }
+
+  .landing-page .hero-actions {
+    width: 100%;
+  }
+
+  .landing-page .landing-hero-get-started-btn,
+  .landing-page .landing-hero-sign-in-btn,
+  .landing-page .landing-hero-explore-link {
+    width: 100%;
+  }
+
+  .landing-page .hero-solo .metric-row,
+  .landing-page .capability-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-page .section-heading {
+    margin-top: 88px;
+  }
+
+  .landing-page .info-card,
+  .landing-page .workflow-card {
+    padding: 26px 24px;
+  }
+
+  .landing-page .cta-banner {
+    align-items: flex-start;
+    margin-top: 88px;
+    padding: 34px 26px;
+    text-align: left;
+  }
+
+  .landing-page .site-footer {
+    margin-top: 64px;
+    padding: 0 0 20px;
+  }
+
+  .landing-page .footer-grid {
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-page .hero-solo .hero-copy h1 {
+    font-size: 2.55rem;
+  }
+
+  .landing-page .hero-solo .eyebrow {
+    font-size: 0.66rem;
+  }
 }
