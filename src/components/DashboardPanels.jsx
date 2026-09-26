@@ -91,8 +91,11 @@ export default function DashboardPanels({ panelContext }) {
     isSubmittingTicket,
     message,
     tickets,
+    deletedTickets = [],
     startEdit,
     deleteTicket,
+    restoreTicket,
+    permanentDeleteTicket,
     currentUser
   } = panelContext;
 
@@ -366,114 +369,273 @@ export default function DashboardPanels({ panelContext }) {
     // Change complaint form, queue, ticket cards, and ticket actions here.
     if (activePanel === 'complaints') {
       return (
-        <div className="complaint-layout">
-          <section className="glass-card form-card">
-            <div className="list-head">
-              <h3>{editingTicketId ? 'Edit complaint' : 'Create complaint'}</h3>
-              {editingTicketId ? <button className="ghost-btn small" type="button" onClick={resetForm}>Cancel</button> : null}
-            </div>
-            <form onSubmit={handleSubmit} className="complaint-form">
-              {!isStudent ? (
-                <>
-                  <input placeholder="Student name" value={form.studentName} onChange={(e) => setForm({ ...form, studentName: e.target.value })} required />
-                  <input placeholder="Student ID" value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} required />
-                </>
-              ) : null}
-
-              {isAdmin ? (
-                <input placeholder="Complaint title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-              ) : null}
-
-              <textarea placeholder="Describe the issue in detail" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={isAdmin ? 5 : 7} required />
-
-              {isAdmin ? (
-                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  <option value="General">General</option>
-                  <option value="Academic">Academic</option>
-                  <option value="Facilities">Facilities</option>
-                  <option value="IT Support">IT Support</option>
-                  <option value="Finance">Finance</option>
-                </select>
-              ) : null}
-
-              {!isStudent ? (
-                <>
-                  {editingTicketId ? (
-                    <input placeholder="Department" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-                  ) : (
-                    <p className="hint-text">The department is assigned automatically by AI based on the description and attachment.</p>
-                  )}
-                  <select value={form.assignedStaffId} onChange={(e) => setForm({ ...form, assignedStaffId: e.target.value })}>
-                    <option value="">Unassigned</option>
-                    {staffMembers.map((member) => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                  </select>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                    <option value="New">New</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Escalated">Escalated</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
-                </>
-              ) : !editingTicketId ? (
-                <p className="hint-text">Our AI assistant reads your description (and attachment) and routes it to the right department automatically.</p>
-              ) : null}
-
-              <div className="upload-box upload-box-disabled" title="File evidence attachment feature is coming soon">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    📎 Upload evidence
-                  </span>
-                  <span className="pill-coming-soon">Coming Soon</span>
+        <div className="complaints-view">
+          <div className="complaint-layout">
+            {isStudent ? (
+              <section className="glass-card form-card">
+                <div className="list-head">
+                  <h3>Create complaint</h3>
                 </div>
-                <p className="hint-text" style={{ margin: '2px 0 0', fontSize: '0.78rem', opacity: 0.8 }}>File attachments will be available in the upcoming update.</p>
+                <form onSubmit={handleSubmit} className="complaint-form">
+                  <textarea
+                    placeholder="Describe the issue in detail"
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    rows={7}
+                    required
+                  />
+                  <p className="hint-text">
+                    Our AI assistant reads your description (and attachment) and routes it to the right department automatically.
+                  </p>
+                  <div className="upload-box upload-box-disabled" title="File evidence attachment feature is coming soon">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        📎 Upload evidence
+                      </span>
+                      <span className="pill-coming-soon">Coming Soon</span>
+                    </div>
+                    <p className="hint-text" style={{ margin: '2px 0 0', fontSize: '0.78rem', opacity: 0.8 }}>File attachments will be available in the upcoming update.</p>
+                  </div>
+                  <button type="submit" disabled={isSubmittingTicket}>
+                    {isSubmittingTicket ? 'Analyzing complaint...' : 'Send complaint'}
+                  </button>
+                </form>
+                {message ? <p className="message">{message}</p> : null}
+              </section>
+            ) : (
+              <section className="glass-card form-card">
+                {editingTicketId ? (
+                  <>
+                    <div className="list-head">
+                      <h3>Assign & update status</h3>
+                      <button className="ghost-btn small" type="button" onClick={resetForm}>Cancel</button>
+                    </div>
+
+                    <div className="ticket-preview-card">
+                      <div className="ticket-preview-top">
+                        <h4>{form.title || 'Complaint'}</h4>
+                        <span className={`pill ${(form.status || 'new').toLowerCase().replace(/\s+/g, '-')}`}>{form.status || 'New'}</span>
+                      </div>
+                      <p className="ticket-preview-desc">{form.description}</p>
+                      <div className="meta-row" style={{ marginTop: '4px' }}>
+                        {form.studentName ? <span>Student: {form.studentName}</span> : null}
+                        {form.studentId ? <span>ID: {form.studentId}</span> : null}
+                        {form.department ? <span>Dept: {form.department}</span> : null}
+                        {form.category ? <span>{form.category}</span> : null}
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="complaint-form">
+                      <div>
+                        <label className="field-label">Assign to staff</label>
+                        <select value={form.assignedStaffId} onChange={(e) => setForm({ ...form, assignedStaffId: e.target.value })}>
+                          <option value="">Unassigned</option>
+                          {staffMembers.map((member) => (
+                            <option key={member.id} value={member.id}>
+                              {member.name} {member.department ? `(${member.department})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="field-label">Complaint status</label>
+                        <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                          <option value="New">New</option>
+                          <option value="Assigned">Assigned</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Escalated">Escalated</option>
+                          <option value="Resolved">Resolved</option>
+                        </select>
+                      </div>
+
+                      <button type="submit" disabled={isSubmittingTicket}>
+                        Save changes
+                      </button>
+                    </form>
+                  </>
+                ) : (
+                  <>
+                    <div className="list-head">
+                      <h3>Complaint actions</h3>
+                    </div>
+                    <div className="empty-selection-box">
+                      <p className="empty-title">No complaint selected</p>
+                      <p className="empty-desc">
+                        Click <strong>"Assign / Status"</strong> on any complaint in the queue to assign staff or update its status.
+                      </p>
+                      <p className="empty-note">
+                        Complaint contents (title, description, and student info) cannot be modified.
+                      </p>
+                    </div>
+                  </>
+                )}
+                {message ? <p className="message">{message}</p> : null}
+              </section>
+            )}
+
+            <section className="glass-card list-card">
+              <div className="list-head">
+                <h3>{isStudent ? 'My requests' : isStaff ? 'My queue' : 'Queue'}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="pill">{tickets.length} items</span>
+                  {isAdmin && deletedTickets.length > 0 ? (
+                    <a
+                      href="#deleted-complaints"
+                      className="pill danger"
+                      style={{ textDecoration: 'none', cursor: 'pointer' }}
+                    >
+                      {deletedTickets.length} in trash ↓
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+              {tickets.length === 0 ? (
+                <p className="empty-state">No complaints yet. Your first report will appear here.</p>
+              ) : (
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible">
+                  {tickets.map((ticket) => (
+                    <motion.article key={ticket.id} className="ticket-item" variants={fadeUp} whileHover={{ y: -4 }} transition={{ duration: 0.18 }}>
+                      <div className="ticket-top">
+                        <h4>{ticket.title}</h4>
+                        <span className={`pill ${ticket.status.toLowerCase().replace(/\s+/g, '-')}`}>{ticket.status}</span>
+                      </div>
+                      <p>{ticket.description}</p>
+                      <div className="meta-row">
+                        <span>{ticket.student_name}</span>
+                        <span>{ticket.department}</span>
+                        <span>{ticket.assigned?.name || 'No staff'}</span>
+                        <span>{ticket.priority || 'Medium'}</span>
+                      </div>
+                      {!isStudent ? (
+                        <div className="action-row">
+                          <button
+                            className="ghost-btn small"
+                            type="button"
+                            onClick={() => startEdit(ticket)}
+                          >
+                            {editingTicketId === ticket.id ? 'Selected' : 'Assign / Status'}
+                          </button>
+                          {isAdmin ? (
+                            <button className="ghost-btn small danger" type="button" onClick={() => deleteTicket(ticket.id)}>Delete</button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </motion.article>
+                  ))}
+                </motion.div>
+              )}
+            </section>
+          </div>
+
+          {isAdmin ? (
+            <section id="deleted-complaints" className="glass-card deleted-section">
+              <div className="list-head">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h3 style={{ margin: 0 }}>Deleted complaints</h3>
+                  <span className="pill danger" style={{ fontSize: '0.74rem' }}>Trash</span>
+                </div>
+                <span className="pill">{deletedTickets.length} items</span>
               </div>
 
-              <button type="submit" disabled={isSubmittingTicket}>
-                {isSubmittingTicket ? 'Analyzing complaint...' : editingTicketId ? 'Save changes' : 'Send complaint'}
-              </button>
-            </form>
-            {message ? <p className="message">{message}</p> : null}
-          </section>
-
-          <section className="glass-card list-card">
-            <div className="list-head">
-              <h3>{isStudent ? 'My requests' : isStaff ? 'My queue' : 'Queue'}</h3>
-              <span className="pill">{tickets.length} items</span>
-            </div>
-            {tickets.length === 0 ? (
-              <p className="empty-state">No complaints yet. Your first report will appear here.</p>
-            ) : (
-              <motion.div variants={staggerContainer} initial="hidden" animate="visible">
-                {tickets.map((ticket) => (
-                  <motion.article key={ticket.id} className="ticket-item" variants={fadeUp} whileHover={{ y: -4 }} transition={{ duration: 0.18 }}>
-                    <div className="ticket-top">
-                      <h4>{ticket.title}</h4>
-                      <span className={`pill ${ticket.status.toLowerCase().replace(/\s+/g, '-')}`}>{ticket.status}</span>
-                    </div>
-                    <p>{ticket.description}</p>
-                    <div className="meta-row">
-                      <span>{ticket.student_name}</span>
-                      <span>{ticket.department}</span>
-                      <span>{ticket.assigned?.name || 'No staff'}</span>
-                      <span>{ticket.priority || 'Medium'}</span>
-                    </div>
-                    {!isStudent ? (
-                      <div className="action-row">
-                        <button className="ghost-btn small" type="button" onClick={() => startEdit(ticket)}>Edit</button>
-                        {isAdmin ? (
-                          <button className="ghost-btn small danger" type="button" onClick={() => deleteTicket(ticket.id)}>Delete</button>
-                        ) : null}
+              {deletedTickets.length === 0 ? (
+                <p className="empty-state" style={{ padding: '24px 12px' }}>
+                  No deleted complaints. When you delete a complaint from the queue, it will move here.
+                </p>
+              ) : (
+                <div className="deleted-tickets-list">
+                  {deletedTickets.map((ticket) => (
+                    <article key={ticket.id} className="ticket-item deleted-ticket-item">
+                      <div className="ticket-top">
+                        <h4 style={{ textDecoration: 'line-through', opacity: 0.85 }}>{ticket.title}</h4>
+                        <span className="pill deleted">Deleted</span>
                       </div>
-                    ) : null}
-                  </motion.article>
-                ))}
-              </motion.div>
-            )}
-          </section>
+                      <p style={{ opacity: 0.85 }}>{ticket.description}</p>
+                      <div className="meta-row">
+                        <span>Student: {ticket.student_name}</span>
+                        <span>Dept: {ticket.department}</span>
+                        <span>{ticket.assigned?.name || 'No staff'}</span>
+                        <span>{ticket.priority || 'Medium'}</span>
+                      </div>
+                      <div className="action-row">
+                        <button
+                          className="ghost-btn small"
+                          type="button"
+                          onClick={() => restoreTicket(ticket.id)}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          className="ghost-btn small danger"
+                          type="button"
+                          onClick={() => permanentDeleteTicket(ticket.id)}
+                        >
+                          Delete permanently
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          ) : null}
         </div>
+      );
+    }
+
+    // COMPONENT: Deleted Complaints Panel
+    // Dedicated panel for deleted complaints archive.
+    if (activePanel === 'deleted-complaints' && isAdmin) {
+      return (
+        <section className="glass-card panel-card deleted-section">
+          <div className="list-head">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3 style={{ margin: 0 }}>Deleted complaints</h3>
+              <span className="pill danger" style={{ fontSize: '0.74rem' }}>Trash</span>
+            </div>
+            <span className="pill">{deletedTickets.length} items</span>
+          </div>
+
+          {deletedTickets.length === 0 ? (
+            <p className="empty-state" style={{ padding: '36px 12px' }}>
+              No deleted complaints found. When complaints are deleted from the queue, they will appear here.
+            </p>
+          ) : (
+            <div className="deleted-tickets-list">
+              {deletedTickets.map((ticket) => (
+                <article key={ticket.id} className="ticket-item deleted-ticket-item">
+                  <div className="ticket-top">
+                    <h4 style={{ textDecoration: 'line-through', opacity: 0.85 }}>{ticket.title}</h4>
+                    <span className="pill deleted">Deleted</span>
+                  </div>
+                  <p style={{ opacity: 0.85 }}>{ticket.description}</p>
+                  <div className="meta-row">
+                    <span>Student: {ticket.student_name}</span>
+                    <span>Dept: {ticket.department}</span>
+                    <span>{ticket.assigned?.name || 'No staff'}</span>
+                    <span>{ticket.priority || 'Medium'}</span>
+                  </div>
+                  <div className="action-row">
+                    <button
+                      className="ghost-btn small"
+                      type="button"
+                      onClick={() => restoreTicket(ticket.id)}
+                    >
+                      Restore
+                    </button>
+                    <button
+                      className="ghost-btn small danger"
+                      type="button"
+                      onClick={() => permanentDeleteTicket(ticket.id)}
+                    >
+                      Delete permanently
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       );
     }
 

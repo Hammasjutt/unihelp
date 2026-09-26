@@ -126,6 +126,13 @@ const NavIcon = {
       <circle cx="9" cy="12" r="2" />
       <path d="M14 10h5M14 14h3" />
     </svg>
+  ),
+  trash: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
   )
 };
 
@@ -142,6 +149,7 @@ const NAV_BY_ROLE = {
     { id: 'staff', label: 'Staff', icon: NavIcon.users },
     { id: 'students', label: 'Students', icon: NavIcon.idCard },
     { id: 'complaints', label: 'Complaints', icon: NavIcon.ticket },
+    { id: 'deleted-complaints', label: 'Deleted complaints', icon: NavIcon.trash },
     { id: 'profile', label: 'Profile', icon: NavIcon.user }
   ],
   staff: [
@@ -195,6 +203,7 @@ function getPanelTitle(panel, role) {
     if (role === 'staff') return 'My queue';
     return 'Complaint queue';
   }
+  if (panel === 'deleted-complaints') return 'Deleted complaints';
   if (panel === 'profile') return 'Profile settings';
   return '';
 }
@@ -425,13 +434,21 @@ function App() {
     }
   }, [needsStudentProfile, currentUser?.id]);
 
-  const stats = useMemo(() => ({
-    total: tickets.length,
-    highPriority: tickets.filter((ticket) => ticket.priority === 'High').length,
-    assigned: tickets.filter((ticket) => ticket.status === 'Assigned' || ticket.status === 'In Progress').length
-  }), [tickets]);
+  const activeTickets = useMemo(() => {
+    return tickets.filter((ticket) => ticket.status !== 'Deleted');
+  }, [tickets]);
 
-  const recentTickets = useMemo(() => tickets.slice(0, 5), [tickets]);
+  const deletedTickets = useMemo(() => {
+    return tickets.filter((ticket) => ticket.status === 'Deleted');
+  }, [tickets]);
+
+  const stats = useMemo(() => ({
+    total: activeTickets.length,
+    highPriority: activeTickets.filter((ticket) => ticket.priority === 'High').length,
+    assigned: activeTickets.filter((ticket) => ticket.status === 'Assigned' || ticket.status === 'In Progress').length
+  }), [activeTickets]);
+
+  const recentTickets = useMemo(() => activeTickets.slice(0, 5), [activeTickets]);
 
   // LOGIC: Login and institution registration.
   const handleAuth = async (event) => {
@@ -507,10 +524,6 @@ function App() {
       const { data: updatedTicket, error } = await supabase
         .from('tickets')
         .update({
-          title: form.title,
-          description: form.description,
-          category: form.category,
-          department: form.department,
           status: form.status,
           assigned_staff_id: form.assignedStaffId || null
         })
@@ -523,7 +536,7 @@ function App() {
         return;
       }
       setTickets((prev) => prev.map((ticket) => (ticket.id === updatedTicket.id ? updatedTicket : ticket)));
-      setMessage('Complaint updated successfully.');
+      setMessage('Complaint status & assignment updated successfully.');
       setActivePanel('complaints');
       resetForm();
       return;
@@ -569,13 +582,53 @@ function App() {
   };
 
   const deleteTicket = async (ticketId) => {
+    const { data: updatedTicket, error } = await supabase
+      .from('tickets')
+      .update({ status: 'Deleted' })
+      .eq('id', ticketId)
+      .select('*, assigned:profiles!assigned_staff_id(id,name)')
+      .single();
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setTickets((prev) => prev.map((ticket) => (ticket.id === ticketId ? (updatedTicket || { ...ticket, status: 'Deleted' }) : ticket)));
+    if (editingTicketId === ticketId) {
+      resetForm();
+    }
+    setMessage('Complaint moved to deleted section.');
+  };
+
+  const restoreTicket = async (ticketId) => {
+    const ticketToRestore = tickets.find((t) => t.id === ticketId);
+    const restoredStatus = ticketToRestore?.assigned_staff_id ? 'Assigned' : 'New';
+    const { data: updatedTicket, error } = await supabase
+      .from('tickets')
+      .update({ status: restoredStatus })
+      .eq('id', ticketId)
+      .select('*, assigned:profiles!assigned_staff_id(id,name)')
+      .single();
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setTickets((prev) => prev.map((ticket) => (ticket.id === ticketId ? (updatedTicket || { ...ticket, status: restoredStatus }) : ticket)));
+    setMessage('Complaint restored to queue.');
+  };
+
+  const permanentDeleteTicket = async (ticketId) => {
     const { error } = await supabase.from('tickets').delete().eq('id', ticketId);
     if (error) {
       setMessage(error.message);
       return;
     }
     setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
-    setMessage('Complaint removed.');
+    if (editingTicketId === ticketId) {
+      resetForm();
+    }
+    setMessage('Complaint permanently removed.');
   };
 
   const resetStaffForm = () => {
@@ -907,9 +960,12 @@ function App() {
     setForm,
     isSubmittingTicket,
     message,
-    tickets,
+    tickets: activeTickets,
+    deletedTickets,
     startEdit,
     deleteTicket,
+    restoreTicket,
+    permanentDeleteTicket,
     currentUser
   };
 

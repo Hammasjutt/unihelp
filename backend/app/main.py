@@ -450,13 +450,14 @@ def list_tickets(authorization: Optional[str] = Header(None)):
     )
 
     if profile.get("role") == "student":
-        return [ticket for ticket in tickets if ticket.get("submitted_by") == user.id]
+        return [ticket for ticket in tickets if ticket.get("submitted_by") == user.id and ticket.get("status") != "Deleted"]
     elif profile.get("role") == "staff":
         department = profile.get("department") or ""
         return [
             ticket
             for ticket in tickets
-            if ticket.get("department") == department or ticket.get("assigned_staff_id") == user.id
+            if (ticket.get("department") == department or ticket.get("assigned_staff_id") == user.id)
+            and ticket.get("status") != "Deleted"
         ]
 
     return tickets
