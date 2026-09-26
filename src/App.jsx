@@ -220,7 +220,11 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '', institutionName: '' });
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
+  const [recoveryCooldown, setRecoveryCooldown] = useState(0);
   const [form, setForm] = useState(emptyForm);
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
@@ -340,7 +344,10 @@ function App() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && /type=invite|type=recovery/.test(window.location.hash)) {
+    if (typeof window !== 'undefined' && (
+      /type=invite|type=recovery/.test(window.location.hash)
+      || new URLSearchParams(window.location.search).get('recovery') === '1'
+    )) {
       setNeedsPasswordSetup(true);
     }
   }, []);
@@ -353,6 +360,14 @@ function App() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isAuthModalOpen]);
+
+  useEffect(() => {
+    if (recoveryCooldown <= 0) return undefined;
+    const timer = window.setInterval(() => {
+      setRecoveryCooldown((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [recoveryCooldown > 0]);
 
   useEffect(() => {
     if (!supabase) {
@@ -368,9 +383,14 @@ function App() {
     };
     bootstrap();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setNeedsPasswordSetup(true);
+        setMessage('Email verified. Choose your new password.');
+      }
       if (session?.user) {
-        await hydrateUser(session.user);
+        // Defer database work until Supabase has released its auth-state lock.
+        window.setTimeout(() => hydrateUser(session.user), 0);
       } else {
         setCurrentUser(null);
       }
@@ -489,18 +509,70 @@ function App() {
     setMessage('Signed in.');
   };
 
+  // LOGIC: Send Supabase's password-recovery link for every role.
+  const handleForgotPassword = async (event) => {
+    event.preventDefault();
+    if (!supabase) {
+      setMessage('Supabase is not configured for this app.');
+      return;
+    }
+
+    const email = recoveryEmail.trim().toLowerCase();
+    if (!email) {
+      setMessage('Enter your account email address.');
+      return;
+    }
+
+    if (recoveryCooldown > 0) {
+      setMessage(`Please wait ${recoveryCooldown} seconds before requesting another reset email.`);
+      return;
+    }
+
+    setIsAuthSubmitting(true);
+    setMessage('');
+    const redirectTo = `${window.location.origin}${window.location.pathname}?recovery=1`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    setIsAuthSubmitting(false);
+
+    if (error) {
+      const isRateLimited = error.status === 429
+        || error.code === 'over_email_send_rate_limit'
+        || /rate limit/i.test(error.message || '');
+      if (isRateLimited) {
+        setRecoveryCooldown(60);
+        setMessage('Too many reset emails were requested. Please use the latest reset email already in your inbox, or wait a while before trying again.');
+      } else {
+        setMessage(error.message);
+      }
+      return;
+    }
+
+    setRecoveryEmail(email);
+    setRecoveryCooldown(60);
+    setAuthView('recovery-sent');
+    setMessage('');
+  };
+
   // LOGIC: Password setup for invited/recovery users.
   const handleSetPassword = async (event) => {
     event.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setMessage('Passwords do not match.');
+      return;
+    }
+    setIsAuthSubmitting(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setIsAuthSubmitting(false);
     if (error) {
       setMessage(error.message);
       return;
     }
     setNeedsPasswordSetup(false);
     setNewPassword('');
+    setConfirmPassword('');
+    setRecoveryEmail('');
     window.history.replaceState(null, '', window.location.pathname);
-    setMessage('Password set. Welcome!');
+    setMessage('Your password has been updated successfully.');
   };
 
   const handleLogout = async () => {
@@ -853,7 +925,10 @@ function App() {
       <PasswordSetupScreen
         newPassword={newPassword}
         setNewPassword={setNewPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
         handleSetPassword={handleSetPassword}
+        isSubmitting={isAuthSubmitting}
         message={message}
       />
     );
@@ -885,7 +960,13 @@ function App() {
         authForm={authForm}
         setAuthForm={setAuthForm}
         handleAuth={handleAuth}
+        recoveryEmail={recoveryEmail}
+        setRecoveryEmail={setRecoveryEmail}
+        handleForgotPassword={handleForgotPassword}
+        isAuthSubmitting={isAuthSubmitting}
+        recoveryCooldown={recoveryCooldown}
         message={message}
+        clearAuthMessage={() => setMessage('')}
       />
     );
   }

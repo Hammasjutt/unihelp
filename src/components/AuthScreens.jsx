@@ -5,7 +5,10 @@
 export function PasswordSetupScreen({
   newPassword,
   setNewPassword,
+  confirmPassword,
+  setConfirmPassword,
   handleSetPassword,
+  isSubmitting,
   message
 }) {
   return (
@@ -24,7 +27,17 @@ export function PasswordSetupScreen({
                 required
                 minLength={6}
               />
-              <button type="submit">Set password &amp; continue</button>
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+                minLength={6}
+              />
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Updating password...' : 'Set password & continue'}
+              </button>
             </form>
             {message ? <p className="message">{message}</p> : null}
           </div>

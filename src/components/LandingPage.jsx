@@ -23,8 +23,21 @@ function AuthModal({
   authForm,
   setAuthForm,
   handleAuth,
-  message
+  recoveryEmail,
+  setRecoveryEmail,
+  handleForgotPassword,
+  isAuthSubmitting,
+  recoveryCooldown,
+  message,
+  clearAuthMessage
 }) {
+  const isRecoveryView = authView === 'forgot' || authView === 'recovery-sent';
+  const switchView = (view) => {
+    setAuthView(view);
+    clearAuthMessage();
+    if (view === 'forgot' && !recoveryEmail) setRecoveryEmail(authForm.email);
+  };
+
   return (
     <AnimatePresence>
       {isOpen ? (
@@ -50,13 +63,65 @@ function AuthModal({
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <img src="/logo.png" alt="UniHelp" className="brand-logo-img" style={{ height: '42px', width: 'auto' }} />
             </div>
-            <p className="eyebrow">{authView === 'login' ? 'Welcome back' : 'Register a new institution'}</p>
-            <div className="toggle-row">
-              <button type="button" className={authView === 'login' ? 'toggle active' : 'toggle'} onClick={() => setAuthView('login')}>Login</button>
-              <button type="button" className={authView === 'register' ? 'toggle active' : 'toggle'} onClick={() => setAuthView('register')}>Register</button>
-            </div>
+            <p className="eyebrow">
+              {authView === 'login' && 'Welcome back'}
+              {authView === 'register' && 'Register a new institution'}
+              {authView === 'forgot' && 'Password recovery'}
+              {authView === 'recovery-sent' && 'Email sent'}
+            </p>
+            {!isRecoveryView ? (
+              <div className="toggle-row">
+                <button type="button" className={authView === 'login' ? 'toggle active' : 'toggle'} onClick={() => switchView('login')}>Login</button>
+                <button type="button" className={authView === 'register' ? 'toggle active' : 'toggle'} onClick={() => switchView('register')}>Register</button>
+              </div>
+            ) : null}
 
-            <form onSubmit={handleAuth} className="auth-form">
+            {authView === 'forgot' ? (
+              <form onSubmit={handleForgotPassword} className="auth-form">
+                <h2 className="auth-title">Forgot your password?</h2>
+                <p className="hint-text">Enter the email used for your admin, staff, or student account. We will send you a secure password-reset link.</p>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  autoComplete="email"
+                  value={recoveryEmail}
+                  onChange={(event) => setRecoveryEmail(event.target.value)}
+                  required
+                  autoFocus
+                />
+                <button type="submit" disabled={isAuthSubmitting || recoveryCooldown > 0}>
+                  {isAuthSubmitting
+                    ? 'Sending link...'
+                    : recoveryCooldown > 0
+                      ? `Try again in ${recoveryCooldown}s`
+                      : 'Send reset link'}
+                </button>
+                <button type="button" className="auth-text-button" onClick={() => switchView('login')}>Back to sign in</button>
+              </form>
+            ) : null}
+
+            {authView === 'recovery-sent' ? (
+              <div className="auth-form recovery-confirmation" role="status">
+                <div className="recovery-email-icon" aria-hidden="true">✓</div>
+                <h2 className="auth-title">Check your email</h2>
+                <p className="hint-text">We sent a password-reset link to <strong>{recoveryEmail}</strong>.</p>
+                <p className="hint-text">Open the email and click <strong>Reset password</strong> to choose your new password. You can close this window afterward.</p>
+                <p className="hint-text">If it is not visible, check your spam folder before requesting another email.</p>
+                <button type="button" onClick={handleForgotPassword} disabled={isAuthSubmitting || recoveryCooldown > 0}>
+                  {isAuthSubmitting
+                    ? 'Sending again...'
+                    : recoveryCooldown > 0
+                      ? `Resend in ${recoveryCooldown}s`
+                      : 'Resend reset link'}
+                </button>
+                <div className="auth-secondary-actions">
+                  <button type="button" className="auth-text-button" onClick={() => switchView('forgot')}>Change email</button>
+                  <button type="button" className="auth-text-button" onClick={() => switchView('login')}>Back to sign in</button>
+                </div>
+              </div>
+            ) : null}
+
+            {!isRecoveryView ? <form onSubmit={handleAuth} className="auth-form">
               {authView === 'register' ? (
                 <>
                   <input placeholder="Full name" value={authForm.name} onChange={(event) => setAuthForm({ ...authForm, name: event.target.value })} required />
@@ -65,13 +130,16 @@ function AuthModal({
               ) : null}
               <input type="email" placeholder="Email address" value={authForm.email} onChange={(event) => setAuthForm({ ...authForm, email: event.target.value })} required />
               <input type="password" placeholder="Password" value={authForm.password} onChange={(event) => setAuthForm({ ...authForm, password: event.target.value })} required minLength={6} />
+              {authView === 'login' ? (
+                <button type="button" className="auth-text-button forgot-password-link" onClick={() => switchView('forgot')}>Forgot password?</button>
+              ) : null}
               {authView === 'register' ? (
                 <p className="hint-text">
                   This creates a brand-new organization and makes you its admin. Already part of one? Ask your admin for an invite instead — there's no self-serve way to join an existing organization.
                 </p>
               ) : null}
               <button type="submit">{authView === 'login' ? 'Sign in' : 'Create account'}</button>
-            </form>
+            </form> : null}
 
             {message ? <p className="message">{message}</p> : null}
           </motion.div>
@@ -104,7 +172,13 @@ export default function LandingPage({
   authForm,
   setAuthForm,
   handleAuth,
-  message
+  recoveryEmail,
+  setRecoveryEmail,
+  handleForgotPassword,
+  isAuthSubmitting,
+  recoveryCooldown,
+  message,
+  clearAuthMessage
 }) {
   return (
     <div className="landing-shell landing-page">
@@ -264,7 +338,13 @@ export default function LandingPage({
         authForm={authForm}
         setAuthForm={setAuthForm}
         handleAuth={handleAuth}
+        recoveryEmail={recoveryEmail}
+        setRecoveryEmail={setRecoveryEmail}
+        handleForgotPassword={handleForgotPassword}
+        isAuthSubmitting={isAuthSubmitting}
+        recoveryCooldown={recoveryCooldown}
         message={message}
+        clearAuthMessage={clearAuthMessage}
       />
     </div>
   );

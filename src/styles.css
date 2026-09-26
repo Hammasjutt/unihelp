@@ -621,6 +621,34 @@ input:focus, textarea:focus, select:focus {
   line-height: 1;
 }
 .modal-close:hover { background: var(--surface-hover); color: var(--text); }
+.auth-title { margin: 2px 0 0; font-size: 1.25rem; }
+.auth-form .auth-text-button {
+  width: fit-content;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-2);
+  font-size: 0.86rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+.auth-form .auth-text-button:hover:not(:disabled) { background: transparent; color: var(--accent); transform: none; }
+.forgot-password-link { justify-self: end; margin-top: -4px; }
+.auth-secondary-actions { display: flex; justify-content: space-between; gap: 12px; }
+.recovery-confirmation { text-align: center; }
+.recovery-email-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 2px auto 4px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+.recovery-confirmation .auth-secondary-actions { margin-top: 2px; }
 
 /* ---------- Dashboard shell ---------- */
 
